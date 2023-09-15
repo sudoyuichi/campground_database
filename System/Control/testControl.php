@@ -7,7 +7,7 @@ require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.php�
 require_once $rootPath . MODEL_PATH . '/test.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
-class TestControlClass extends Smarty {
+class testControl extends Smarty {
     
     private $rootPath;
     private $common;  // CommonClassのインスタンスを保持するプロパティ
