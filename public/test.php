@@ -11,6 +11,3 @@ if(!isset($_POST['mode'])){
 $mode = 'dbtest';
 $testObuject = new TestControlClass();
 $testObuject->execute($mode);
-
-
-
