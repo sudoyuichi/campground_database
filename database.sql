@@ -1,4 +1,3 @@
-
 CREATE DATABASE TestDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE TestTable (
@@ -8,3 +7,14 @@ CREATE TABLE TestTable (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    password_reset_token VARCHAR(255),
+    password_reset_expiration DATETIME,
+    registration_status TINYINT(1) DEFAULT 1, -- 1: アクティブ, 0: 非アクティブ
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME
+);
