@@ -4,7 +4,7 @@ $rootPath = __DIR__ . '/..';
 
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.phpをインクルード
-require_once $rootPath . MODEL_PATH . '/test.php';
+require_once $rootPath . MODEL_PATH . '/testModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class testControl extends Smarty {

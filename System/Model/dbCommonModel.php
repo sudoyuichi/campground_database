@@ -8,14 +8,12 @@ class dbCommonModel {
     private $connection;
 
     public function __construct() {
-        $this->connect();
-    }
-
-    private function connect() {
-        $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-        if ($this->connection->connect_error) {
-            die("Connection failed: " . $this->connection->connect_error);
+        try {
+            $this->connection = new PDO("mysql:host=". DB_HOST . ";dbname=". DB_NAME . ";charset=utf8", DB_USER, DB_PASS);
+            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            echo "データベース接続に成功";
+        }catch (PDOException $e) {
+            echo 'DB接続エラー: ' . $e->getMessage();
         }
     }
 
