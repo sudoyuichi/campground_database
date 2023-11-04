@@ -12,7 +12,13 @@
 
 <h1>テストページ</h1>
 
-<p>テストデータ: {$db_status}</p>
+<p>テストデータ:</p>
+<ul>
+  {foreach $db_status as $user}
+    <p> メールアドレス: {$user.email}</p>
+  {/foreach}
+</ul>
+
 
 </body>
 </html>
