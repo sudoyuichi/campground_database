@@ -3,11 +3,16 @@
 require_once './envPbulic.php';
 require_once CLASS_PATH.'/testControl.php';
 
-if(!isset($_POST['mode'])){
-    $mode = 'index';
-}else{
+$mode = 'index';
+if(isset($_GET['mode'])){
+    if($_GET['mode'] === 'moveRegister'){
+        $mode = 'moveRegister';
+    }
+}
+
+if (isset($_POST['mode'])){
     $mode = $_POST['mode'];
 }
-$mode = 'dbtest';
+
 $testObuject = new testControl();
 $testObuject->execute($mode);

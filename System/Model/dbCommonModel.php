@@ -11,9 +11,9 @@ class dbCommonModel {
         try {
             $this->connection = new PDO("mysql:host=". DB_HOST . ";dbname=". DB_NAME . ";charset=utf8", DB_USER, DB_PASS);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            echo "データベース接続に成功";
+           # echo "データベース接続に成功";
         }catch (PDOException $e) {
-            echo 'DB接続エラー: ' . $e->getMessage();
+           # echo 'DB接続エラー: ' . $e->getMessage();
         }
     }
 
