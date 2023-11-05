@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +12,7 @@
 
 <h1>テストページ</h1>
 
-<p>テストデータ: {$test}</p>
+<a href=test.php?mode=moveRegister>ユーザ登録</a>
 
 </body>
 </html>
