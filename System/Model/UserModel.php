@@ -1,39 +1,47 @@
 <?php
-class UserModel {
+require_once 'dbCommonModel.php';
+
+class userModel {
+
     private $db;
+private $connection;
 
     public function __construct() {
-        // データベースへの接続を初期化
-        try {
-            $this->db = new PDO('mysql:dbname=TestDB;host=localhost;charset=utf8','root','root');
-            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            echo "データベース接続に成功";
-        }catch (PDOException $e) {
-            echo 'DB接続エラー: ' . $e->getMessage();
-        }
+        $this->db = new dbCommonModel();
+            $this->connection = $this->db->getConnection();
     }
 
     public function getUserByEmail($email) {
-        $query = $this->db->prepare('SELECT * FROM users WHERE email = :email');
+        $query = $this->connection->prepare('SELECT * FROM users WHERE email = :email');
         $query->bindParam(':email', $email);
         $query->execute();
         return $query->fetch(PDO::FETCH_ASSOC);
     }
 
     public function createUser($name, $email, $password) {
+        $msg = '';
         try{
+            $this->connection->beginTransaction();
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $query = $this->db->prepare('INSERT INTO users (name, email, password) VALUES (:name, :email, :password)');
+            $query = $this->connection->prepare('INSERT INTO users (name, email, password) VALUES (:name, :email, :password)');
             $query->bindParam(':name', $name);
             $query->bindParam(':email', $email);
             $query->bindParam(':password', $hash);
             $query->execute();
-            echo "ユーザーが登録されました";
-            $this->db->commit();
+            $this->connection->commit();
+            $msg = "ユーザーが登録されました";
         } catch (PDOException $e) {
-            echo "SQL Error: " . $e->getMessage();
-            $this->db->rollBack();
-        }    
+            if ($e->errorInfo[1] == 1062) {
+                // 1062は一意制約違反を示すエラーコードです
+                $msg = "このメールアドレスは既に登録されています。";
+            } else {
+                // その他のデータベース関連のエラーを処理
+                $msg = "データベースエラー: " . $e->getMessage();
+            }
+            $this->connection->rollBack();
+        }
+        echo $msg;
+        
     }
 
     public function verifyPassword($email, $password) {
@@ -44,4 +52,3 @@ class UserModel {
         return null;
     }
 }
-?>
