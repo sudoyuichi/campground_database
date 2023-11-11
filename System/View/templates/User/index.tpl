@@ -12,7 +12,7 @@
 
 <h1>ユーザ登録ページ</h1>
 
-    <form action="test.php" method="post">
+    <form action="user.php" method="post">
         <input type="hidden" name="mode" value="register">
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" required>
