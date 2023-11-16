@@ -7,7 +7,7 @@ require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.php�
 require_once $rootPath . MODEL_PATH . '/userModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
-class userControl extends Smarty {
+class authControl extends Smarty {
     
     private $rootPath;
     private $common;  // CommonClassのインスタンスを保持するプロパティ
@@ -31,7 +31,7 @@ class userControl extends Smarty {
      * @param string $mode モード（'index' または 'register'）
      */
     public function execute($mode) {
-        $temprateDir = 'User/';
+        $temprateDir = 'Auth/';
         switch ($mode) {
             case 'index':
                 $temprateDir .= 'index.tpl';
