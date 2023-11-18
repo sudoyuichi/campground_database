@@ -4,7 +4,7 @@ require_once 'dbCommonModel.php';
 class userModel {
 
     private $db;
-private $connection;
+    private $connection;
 
     public function __construct() {
         $this->db = new dbCommonModel();
@@ -21,34 +21,46 @@ private $connection;
      * @param string $name ユーザー名
      * @param string $email メールアドレス
      * @param string $password パスワード
-     *
+     * @param string $uuid リセットトークン
+     * @param string $timeLimit リセットトークン有効期限
+     * 
      * @return void
      */
-    public function createUser($name, $email, $password) {
-        $msg = '';
+    public function createUser($name, $email, $hash, $uuid, $timeLimit) {
+        $returnVal = false;
         try{
             $this->connection->beginTransaction();
-            $hash = password_hash($password, PASSWORD_BCRYPT);
-            $query = $this->connection->prepare('INSERT INTO users (name, email, password) VALUES (:name, :email, :password)');
+            # DBへとユーザ登録するクエリ
+            $query = $this->connection->prepare('INSERT INTO 
+            users (name, email, password, password_reset_token, password_reset_expiration) 
+            VALUES (:name, :email, :password, :password_reset_token, :password_reset_expiration)');
             $query->bindParam(':name', $name);
             $query->bindParam(':email', $email);
             $query->bindParam(':password', $hash);
+            $query->bindParam(':password_reset_token', $uuid);
+            $query->bindParam(':password_reset_expiration', $timeLimit);
             $query->execute();
             $this->connection->commit();
-            $msg = "ユーザーが登録されました";
+            $returnVal = true;
         } catch (PDOException $e) {
-            if ($e->errorInfo[1] == 1062) {
+            if ($e->errorInfo[1] != 1062) {
                 // 1062は一意制約違反を示すエラーコードです
-                $msg = "このメールアドレスは既に登録されています。";
-            } else {
-                // その他のデータベース関連のエラーを処理
-                $msg = "データベースエラー: " . $e->getMessage();
+                $returnVal = false;
             }
             $this->connection->rollBack();
         }
-        echo $msg;
+        return $returnVal;
     }
 
+    /**
+     * メールアドレスがDBに存在するかの確認用メソッド
+     *
+     * 与えられたメルアドを条件にDBからデータを取得し
+     * 取得したデータを返す。
+     *
+     * @param string $email メールアドレス
+     * @return array|false データ取得できた場合はデータ配列
+     */
     public function getUserByEmail($email) {
         $query = $this->connection->prepare('SELECT * FROM users WHERE email = :email');
         $query->bindParam(':email', $email);
@@ -56,11 +68,24 @@ private $connection;
         return $query->fetch(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * パスワード認証を行うメソッド
+     *
+     * @param string $email メールアドレス
+     * @param string $password パスワード
+     * @return bool　認証に成功したらtrue
+     */
     public function verifyPassword($email, $password) {
+        # アドレスでユーザデータを取得
         $user = $this->getUserByEmail($email);
+        # ユーザが存在し、かつハッシュ化されたパスワードが正しい場合
         if ($user && password_verify($password, $user['password'])) {
-            return $user;
+            session_start();
+            $_SESSION['name'] = $user['name'];
+            session_regenerate_id();
+            return true;
+        }else{
+            return false;
         }
-        return null;
     }
 }
