@@ -4,7 +4,13 @@ $rootPath = __DIR__ . '/..';
 
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.phpをインクルード
-require_once $rootPath . MODEL_PATH . '/testModel.php';
+$models = [
+    'testModel.php',
+    'userModel.php',
+];
+foreach ($models as $model) {
+    require_once $rootPath . MODEL_PATH . '/' . $model;
+}
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class testControl extends Smarty {
@@ -32,6 +38,17 @@ class testControl extends Smarty {
             case 'index':
                 $this->assign('test', 'xxxxx');
                 $temprateDir .= 'index.tpl';
+                break;
+            case 'moveRegister':
+                $temprateDir .= './../user/register.tpl';
+                break;
+            case 'register':
+                $name = $_POST['name'];
+                $email = $_POST['email'];
+                $password = $_POST['password'];
+                $userModel = new userModel();
+                $userModel->createUser($name,$email,$password);
+                $temprateDir .= './../user/register.tpl';
                 break;
             case 'dbtest':
                 $testModel = new testModel();
