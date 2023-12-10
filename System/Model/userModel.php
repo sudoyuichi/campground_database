@@ -5,6 +5,10 @@ class userModel {
 
     private $db;
     private $connection;
+    const TEMPORARY_REGISTRATION = 0; # 仮登録
+    const FULL_REGISTRATION = 1; # 本登録
+    const SUSPENDED = 2; # 停止
+    const WITHDRAWN = 9; # 退会
 
     public function __construct() {
         $this->db = new dbCommonModel();
@@ -24,7 +28,7 @@ class userModel {
      * @param string $uuid リセットトークン
      * @param string $timeLimit リセットトークン有効期限
      * 
-     * @return void
+     * @return bool
      */
     public function createUser($name, $email, $hash, $uuid, $timeLimit) {
         $returnVal = false;
@@ -87,5 +91,49 @@ class userModel {
         }else{
             return false;
         }
+    }
+
+    /**
+     * UUIDの有効期限チェックを行うメソッド
+     *
+     * @param int $uuid UUID
+     * @return bool　有効期限内ならtrue
+     */
+    public function checkUuidStillValid($uuid) {
+        $result = False;
+        $now = date('Y-m-d H:i');
+        $expirationLimit = date('Y-m-d H:i', strtotime('30 minutes'));
+        # UUIDを条件にデータ取得
+        $query = $this->connection->prepare(
+            'SELECT * FROM users 
+             WHERE password_reset_token = :uuid');
+             # AND registration_status = 0
+        $query->bindParam(':uuid', $uuid);
+        $query->execute();
+        $userData = $query->fetch(PDO::FETCH_ASSOC);
+        # データが取れた場合
+        if ($userData){
+            # 発行したトークンが期限内であれば
+            if($now <= $userData['password_reset_expiration'] && $userData['password_reset_expiration'] <= $expirationLimit){
+                # ステータスを本登録へ変更
+                $this->updateRegistrationStatus($userData['id'], UserModel::FULL_REGISTRATION);
+                $result = true;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * 登録ステータスの更新を行う
+     *
+     * @param int $id usersテーブルのid
+     * @param int $status 登録ステータス
+     */
+    public function updateRegistrationStatus($id, $status) {
+        $query = $this->connection->prepare(
+            'UPDATE users SET registration_status = :status WHERE id = :id');
+        $query->bindParam(':status', $status);
+        $query->bindParam(':id', $id);
+        $query->execute();
     }
 }

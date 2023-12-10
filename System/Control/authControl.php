@@ -3,20 +3,20 @@
 $rootPath = __DIR__ . '/..';
 
 require_once $rootPath . '/define.php';
-require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.phpをインクルード
+require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
 require_once $rootPath . MODEL_PATH . '/userModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class authControl extends Smarty {
     
     private $rootPath;
-    private $common;  // CommonClassのインスタンスを保持するプロパティ
+    private $common;  // commonControlのインスタンスを保持するプロパティ
 
     public function __construct() {
         global $rootPath;
         $this->rootPath = $rootPath;
-        // CommonClassのインスタンスを作成
-        $this->common = new CommonClass();
+        // commonControlのインスタンスを作成
+        $this->common = new commonControl();
         parent::__construct();
         $this->setTemplateDir($this->rootPath . VIEW_PATH . '/templates/');
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
@@ -32,6 +32,9 @@ class authControl extends Smarty {
     public function execute($mode) {
         $templateDir = 'Auth/';
         $errorMsg = null;
+        $timeLimit = null;
+        $uuid = null;
+        $isUuidStillAlive = null;
         $userModel = new userModel();
         switch ($mode) {
             # ユーザ登録ページ呼び出し
@@ -51,16 +54,18 @@ class authControl extends Smarty {
                 }else{
                     $hash = password_hash($password, PASSWORD_BCRYPT);
                     //$uuid = パスワドリセットトークンを作成。↓の引数に追加。
-                    $uuid = "xxxxx";
-                    $timeLimit = date("Y-m-d H:i:s",strtotime("30 minute"));
+                    $uuid = $this->common->generateUUID();
+                    $timeLimit = date("Y-m-d H:i",strtotime("30 minute"));
                     $userModel->createUser($name, $email, $hash, $uuid, $timeLimit);
-                    $errorMsg = 'ユーザを登録しました';
-                    $checkUrl = 'http://'.$_SERVER["HTTP_HOST"].'/auth.php?mode=check?id='.$uuid;
+                    $errorMsg = 'ユーザーの仮登録が完了しました。';
+                    $checkUrl = 'http://'.$_SERVER["HTTP_HOST"].'/campground_database/public/auth.php?mode=check&id='.$uuid;
+                    // ↓の方がシンプル？
+                    $checkUrl = 'auth.php?mode=check&id='.$uuid;
                     $this->assign('checkUrl', $checkUrl);
                     $this->assign('result', true);
                 }
                 # ユーザ登録成功画面へ
-                $templateDir .= 'complete.tpl';
+                $templateDir .= 'showPreRegistrationResult.tpl';
                 break;
             # ログイン実行
             case 'login':
@@ -72,14 +77,29 @@ class authControl extends Smarty {
                     $templateDir = 'Main/';
                     $templateDir .= 'main.tpl';
                     break;
-                }else{
-                    $errorMsg = 'ログインに失敗しました';
                 }
+                $errorMsg = 'ログインに失敗しました';
+                break;
+            case 'check':
+                $uuid = $_GET['id'];
+                $isUuidStillAlive = $userModel->checkUuidStillValid($uuid);
+                if($isUuidStillAlive){
+                    $templateDir .= 'showRegistrationResult.tpl';
+                    break;
+                }
+                $errorMsg = '本登録出来ませんでした。最初からやり直して下さい。';
+                $templateDir .= 'showRegistrationResult.tpl';
+                break;
             default:
                 $templateDir .= 'login.tpl';
                 break;
             }
-        $this->assign('errorMsg', $errorMsg);
+        $this->assign([
+            'errorMsg' => $errorMsg,
+            'timeLimit' => $timeLimit,
+            'id' => $uuid,
+            'isUuidStillAlive' => $isUuidStillAlive,
+        ]);
         $this->display($templateDir);
     }
 }
