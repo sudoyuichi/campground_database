@@ -55,7 +55,7 @@ class authControl extends Smarty {
                     $hash = password_hash($password, PASSWORD_BCRYPT);
                     //$uuid = パスワドリセットトークンを作成。↓の引数に追加。
                     $uuid = $this->common->generateUUID();
-                    $timeLimit = date("Y-m-d H:i",strtotime("30 minute"));
+                    $timeLimit = date("Y-m-d H:i:s",strtotime("30 minute"));
                     $userModel->createUser($name, $email, $hash, $uuid, $timeLimit);
                     $errorMsg = 'ユーザーの仮登録が完了しました。';
                     $checkUrl = 'http://'.$_SERVER["HTTP_HOST"].'/campground_database/public/auth.php?mode=check&id='.$uuid;
@@ -79,6 +79,7 @@ class authControl extends Smarty {
                     break;
                 }
                 $errorMsg = 'ログインに失敗しました';
+                $templateDir .= 'login.tpl';
                 break;
             case 'check':
                 $uuid = $_GET['id'];

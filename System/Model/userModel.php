@@ -82,15 +82,14 @@ class userModel {
     public function verifyPassword($email, $password) {
         # アドレスでユーザデータを取得
         $user = $this->getUserByEmail($email);
-        # ユーザが存在し、かつハッシュ化されたパスワードが正しい場合
-        if ($user && password_verify($password, $user['password'])) {
+        # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
+        if ($user['registration_status'] == 1 && password_verify($password, $user['password'])) {
             session_start();
-            $_SESSION['name'] = $user['name'];
             session_regenerate_id();
+            $_SESSION['name'] = $user['name'];
             return true;
-        }else{
-            return false;
         }
+        return false;
     }
 
     /**
@@ -101,8 +100,8 @@ class userModel {
      */
     public function checkUuidStillValid($uuid) {
         $result = False;
-        $now = date('Y-m-d H:i');
-        $expirationLimit = date('Y-m-d H:i', strtotime('30 minutes'));
+        $now = date('Y-m-d H:i:s');
+        $expirationLimit = date('Y-m-d H:i:s', strtotime('30 minutes'));
         # UUIDを条件にデータ取得
         $query = $this->connection->prepare(
             'SELECT * FROM users 
