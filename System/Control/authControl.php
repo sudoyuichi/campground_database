@@ -3,7 +3,7 @@
 $rootPath = __DIR__ . '/..';
 
 require_once $rootPath . '/define.php';
-require_once $rootPath . CONTROL_PATH . '/CommonClass.php';  // CommonClass.phpをインクルード
+require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonClass.phpをインクルード
 require_once $rootPath . MODEL_PATH . '/userModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
@@ -16,7 +16,7 @@ class authControl extends Smarty {
         global $rootPath;
         $this->rootPath = $rootPath;
         // CommonClassのインスタンスを作成
-        $this->common = new CommonClass();
+        $this->common = new commonControl();
         parent::__construct();
         $this->setTemplateDir($this->rootPath . VIEW_PATH . '/templates/');
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
@@ -51,7 +51,7 @@ class authControl extends Smarty {
                 }else{
                     $hash = password_hash($password, PASSWORD_BCRYPT);
                     //$uuid = パスワドリセットトークンを作成。↓の引数に追加。
-                    $uuid = "xxxxx";
+                    $uuid = $this->common->generateUUID();
                     $timeLimit = date("Y-m-d H:i:s",strtotime("30 minute"));
                     $userModel->createUser($name, $email, $hash, $uuid, $timeLimit);
                     $errorMsg = 'ユーザを登録しました';
