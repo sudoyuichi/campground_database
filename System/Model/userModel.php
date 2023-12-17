@@ -5,10 +5,6 @@ class userModel {
 
     private $db;
     private $connection;
-    const TEMPORARY_REGISTRATION = 0; # 仮登録
-    const FULL_REGISTRATION = 1; # 本登録
-    const SUSPENDED = 2; # 停止
-    const WITHDRAWN = 9; # 退会
 
     public function __construct() {
         $this->db = new dbCommonModel();
@@ -93,33 +89,27 @@ class userModel {
     }
 
     /**
-     * UUIDの有効期限チェックを行うメソッド
+     * UUIDから登録データを取得
      *
      * @param int $uuid UUID
-     * @return bool　有効期限内ならtrue
+     * @return array | null 取得したユーザデーザ
      */
-    public function checkUuidStillValid($uuid) {
-        $result = False;
-        $now = date('Y-m-d H:i:s');
-        $expirationLimit = date('Y-m-d H:i:s', strtotime('30 minutes'));
-        # UUIDを条件にデータ取得
-        $query = $this->connection->prepare(
-            'SELECT * FROM users 
-             WHERE password_reset_token = :uuid');
-             # AND registration_status = 0
-        $query->bindParam(':uuid', $uuid);
-        $query->execute();
-        $userData = $query->fetch(PDO::FETCH_ASSOC);
-        # データが取れた場合
-        if ($userData){
-            # 発行したトークンが期限内であれば
-            if($now <= $userData['password_reset_expiration'] && $userData['password_reset_expiration'] <= $expirationLimit){
-                # ステータスを本登録へ変更
-                $this->updateRegistrationStatus($userData['id'], UserModel::FULL_REGISTRATION);
-                $result = true;
-            }
+    public function getUserData($uuid) {
+        try{
+            # UUIDを条件にデータ取得
+            $query = $this->connection->prepare(
+                'SELECT * FROM users 
+                WHERE password_reset_token = :uuid');
+                # AND registration_status = 0
+            $query->bindParam(':uuid', $uuid);
+            $query->execute();
+            $userData = $query->fetch(PDO::FETCH_ASSOC);
+            return $userData;
+        } catch (PDOException $e) {
+            $errorMessage = 'ユーザデータの取得に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
         }
-        return $result;
+        return null;
     }
 
     /**
@@ -129,10 +119,16 @@ class userModel {
      * @param int $status 登録ステータス
      */
     public function updateRegistrationStatus($id, $status) {
-        $query = $this->connection->prepare(
-            'UPDATE users SET registration_status = :status WHERE id = :id');
-        $query->bindParam(':status', $status);
-        $query->bindParam(':id', $id);
-        $query->execute();
+        try{
+            $query = $this->connection->prepare(
+                'UPDATE users SET registration_status = :status WHERE id = :id');
+            $query->bindParam(':status', $status);
+            $query->bindParam(':id', $id);
+            $query->execute();
+        } catch (PDOException $e) {
+            $errorMessage = '登録ステータスの更新に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
+            $this->connection->rollBack();
+        }
     }
 }

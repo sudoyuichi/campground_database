@@ -8,7 +8,10 @@ require_once $rootPath . MODEL_PATH . '/userModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class authControl extends Smarty {
-    
+    const TEMPORARY_REGISTRATION = 0; # 仮登録
+    const FULL_REGISTRATION = 1; # 本登録
+    const SUSPENDED = 2; # 停止
+    const WITHDRAWN = 9; # 退会
     private $rootPath;
     private $common;  // commonControlのインスタンスを保持するプロパティ
 
@@ -32,7 +35,7 @@ class authControl extends Smarty {
     public function execute($mode) {
         $templateDir = 'Auth/';
         $errorMsg = null;
-        $timeLimit = null;
+        $timeLimit = '0000-00-00 00:00:00';
         $uuid = null;
         $isUuidStillAlive = null;
         $userModel = new userModel();
@@ -83,9 +86,14 @@ class authControl extends Smarty {
                 break;
             case 'check':
                 $uuid = $_GET['id'];
-                $isUuidStillAlive = $userModel->checkUuidStillValid($uuid);
+                # uuidからユーザデータを取得
+                $userData = $userModel->getUserData($uuid);
+                # 取得したユーザデータのuuidの登録期限が期限内かチェック
+                $isUuidStillAlive = $this->checkUuidStillValid($userData);
                 if($isUuidStillAlive){
                     $templateDir .= 'showRegistrationResult.tpl';
+                    # 登録ステータスを本登録へ変更
+                    $userModel->updateRegistrationStatus($userData['id'], authControl::FULL_REGISTRATION);
                     break;
                 }
                 $errorMsg = '本登録出来ませんでした。最初からやり直して下さい。';
@@ -97,10 +105,30 @@ class authControl extends Smarty {
             }
         $this->assign([
             'errorMsg' => $errorMsg,
-            'timeLimit' => $timeLimit,
+            'timeLimit' => date("Y-m-d H:i",strtotime($timeLimit)),
             'id' => $uuid,
             'isUuidStillAlive' => $isUuidStillAlive,
         ]);
         $this->display($templateDir);
+    }
+
+    /**
+     * uuidが有効期限内であるかを確認
+     *
+     * @param array $userData uuidで取得したユーザデータ
+     * @return bool $isUuidStillAlive uuidが有効期限内かの判定結果
+     */
+    public function checkUuidStillValid($userData) {
+        $now = date('Y-m-d H:i:s');
+        $isUuidStillAlive = False;
+        # データが取れた場合
+        if($userData){
+            $expirationLimit = $userData['password_reset_expiration'];
+            # 現在が発行期限内であるかを確認
+            if($now <= $expirationLimit){
+                $isUuidStillAlive = true;
+            }
+        }
+        return $isUuidStillAlive;
     }
 }
