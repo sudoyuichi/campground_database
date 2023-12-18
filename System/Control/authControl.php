@@ -87,7 +87,7 @@ class authControl extends Smarty {
             case 'check':
                 $uuid = $_GET['id'];
                 # uuidからユーザデータを取得
-                $userData = $userModel->getUserData($uuid);
+                $userData = $userModel->getUserDataByUuid($uuid);
                 # 取得したユーザデータのuuidの登録期限が期限内かチェック
                 $isUuidStillAlive = $this->checkUuidStillValid($userData);
                 if($isUuidStillAlive){
@@ -96,7 +96,7 @@ class authControl extends Smarty {
                     $userModel->updateRegistrationStatus($userData['id'], authControl::FULL_REGISTRATION);
                     break;
                 }
-                $errorMsg = '本登録出来ませんでした。最初からやり直して下さい。';
+                $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
             default:
