@@ -94,7 +94,7 @@ class userModel {
      * @param int $uuid UUID
      * @return array | null 取得したユーザデーザ
      */
-    public function getUserData($uuid) {
+    public function getUserDataByUuid($uuid) {
         try{
             # UUIDを条件にデータ取得
             $query = $this->connection->prepare(
