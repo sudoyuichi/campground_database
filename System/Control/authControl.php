@@ -3,19 +3,22 @@
 $rootPath = __DIR__ . '/..';
 
 require_once $rootPath . '/define.php';
-require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonClass.phpをインクルード
+require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
 require_once $rootPath . MODEL_PATH . '/userModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class authControl extends Smarty {
-    
+    const TEMPORARY_REGISTRATION = 0; # 仮登録
+    const FULL_REGISTRATION = 1; # 本登録
+    const SUSPENDED = 2; # 停止
+    const WITHDRAWN = 9; # 退会
     private $rootPath;
-    private $common;  // CommonClassのインスタンスを保持するプロパティ
+    private $common;  // commonControlのインスタンスを保持するプロパティ
 
     public function __construct() {
         global $rootPath;
         $this->rootPath = $rootPath;
-        // CommonClassのインスタンスを作成
+        // commonControlのインスタンスを作成
         $this->common = new commonControl();
         parent::__construct();
         $this->setTemplateDir($this->rootPath . VIEW_PATH . '/templates/');
@@ -32,6 +35,9 @@ class authControl extends Smarty {
     public function execute($mode) {
         $templateDir = 'Auth/';
         $errorMsg = null;
+        $timeLimit = '0000-00-00 00:00:00';
+        $uuid = null;
+        $isUuidStillAlive = null;
         $userModel = new userModel();
         switch ($mode) {
             # ユーザ登録ページ呼び出し
@@ -54,13 +60,15 @@ class authControl extends Smarty {
                     $uuid = $this->common->generateUUID();
                     $timeLimit = date("Y-m-d H:i:s",strtotime("30 minute"));
                     $userModel->createUser($name, $email, $hash, $uuid, $timeLimit);
-                    $errorMsg = 'ユーザを登録しました';
-                    $checkUrl = 'http://'.$_SERVER["HTTP_HOST"].'/auth.php?mode=check?id='.$uuid;
+                    $errorMsg = 'ユーザーの仮登録が完了しました。';
+                    $checkUrl = 'http://'.$_SERVER["HTTP_HOST"].'/campground_database/public/auth.php?mode=check&id='.$uuid;
+                    // ↓の方がシンプル？
+                    $checkUrl = 'auth.php?mode=check&id='.$uuid;
                     $this->assign('checkUrl', $checkUrl);
                     $this->assign('result', true);
                 }
                 # ユーザ登録成功画面へ
-                $templateDir .= 'complete.tpl';
+                $templateDir .= 'showPreRegistrationResult.tpl';
                 break;
             # ログイン実行
             case 'login':
@@ -72,14 +80,55 @@ class authControl extends Smarty {
                     $templateDir = 'Main/';
                     $templateDir .= 'main.tpl';
                     break;
-                }else{
-                    $errorMsg = 'ログインに失敗しました';
                 }
+                $errorMsg = 'ログインに失敗しました';
+                $templateDir .= 'login.tpl';
+                break;
+            case 'check':
+                $uuid = $_GET['id'];
+                # uuidからユーザデータを取得
+                $userData = $userModel->getUserDataByUuid($uuid);
+                # 取得したユーザデータのuuidの登録期限が期限内かチェック
+                $isUuidStillAlive = $this->checkUuidStillValid($userData);
+                if($isUuidStillAlive){
+                    $templateDir .= 'showRegistrationResult.tpl';
+                    # 登録ステータスを本登録へ変更
+                    $userModel->updateRegistrationStatus($userData['id'], authControl::FULL_REGISTRATION);
+                    break;
+                }
+                $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
+                $templateDir .= 'showRegistrationResult.tpl';
+                break;
             default:
                 $templateDir .= 'login.tpl';
                 break;
             }
-        $this->assign('errorMsg', $errorMsg);
+        $this->assign([
+            'errorMsg' => $errorMsg,
+            'timeLimit' => date("Y-m-d H:i",strtotime($timeLimit)),
+            'id' => $uuid,
+            'isUuidStillAlive' => $isUuidStillAlive,
+        ]);
         $this->display($templateDir);
+    }
+
+    /**
+     * uuidが有効期限内であるかを確認
+     *
+     * @param array $userData uuidで取得したユーザデータ
+     * @return bool $isUuidStillAlive uuidが有効期限内かの判定結果
+     */
+    public function checkUuidStillValid($userData) {
+        $now = date('Y-m-d H:i:s');
+        $isUuidStillAlive = False;
+        # データが取れた場合
+        if($userData){
+            $expirationLimit = $userData['password_reset_expiration'];
+            # 現在が発行期限内であるかを確認
+            if($now <= $expirationLimit){
+                $isUuidStillAlive = true;
+            }
+        }
+        return $isUuidStillAlive;
     }
 }

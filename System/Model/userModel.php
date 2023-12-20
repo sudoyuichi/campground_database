@@ -24,7 +24,7 @@ class userModel {
      * @param string $uuid リセットトークン
      * @param string $timeLimit リセットトークン有効期限
      * 
-     * @return void
+     * @return bool
      */
     public function createUser($name, $email, $hash, $uuid, $timeLimit) {
         $returnVal = false;
@@ -78,14 +78,57 @@ class userModel {
     public function verifyPassword($email, $password) {
         # アドレスでユーザデータを取得
         $user = $this->getUserByEmail($email);
-        # ユーザが存在し、かつハッシュ化されたパスワードが正しい場合
-        if ($user && password_verify($password, $user['password'])) {
+        # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
+        if ($user['registration_status'] == 1 && password_verify($password, $user['password'])) {
             session_start();
-            $_SESSION['name'] = $user['name'];
             session_regenerate_id();
+            $_SESSION['name'] = $user['name'];
             return true;
-        }else{
-            return false;
+        }
+        return false;
+    }
+
+    /**
+     * UUIDから登録データを取得
+     *
+     * @param int $uuid UUID
+     * @return array | null 取得したユーザデーザ
+     */
+    public function getUserDataByUuid($uuid) {
+        try{
+            # UUIDを条件にデータ取得
+            $query = $this->connection->prepare(
+                'SELECT * FROM users 
+                WHERE password_reset_token = :uuid');
+                # AND registration_status = 0
+            $query->bindParam(':uuid', $uuid);
+            $query->execute();
+            $userData = $query->fetch(PDO::FETCH_ASSOC);
+            return $userData;
+        } catch (PDOException $e) {
+            $errorMessage = 'ユーザデータの取得に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
+        }
+        return null;
+    }
+
+    /**
+     * 登録ステータスの更新を行う
+     *
+     * @param int $id usersテーブルのid
+     * @param int $status 登録ステータス
+     */
+    public function updateRegistrationStatus($id, $status) {
+        try{
+            $query = $this->connection->prepare(
+                'UPDATE users SET registration_status = :status WHERE id = :id');
+            $query->bindParam(':status', $status);
+            $query->bindParam(':id', $id);
+            $query->execute();
+        } catch (PDOException $e) {
+            $errorMessage = '登録ステータスの更新に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
+            $this->connection->rollBack();
         }
     }
 }
