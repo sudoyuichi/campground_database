@@ -99,6 +99,8 @@ class authControl extends Smarty {
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
+            case 'logout':
+                $this->logout();
             default:
                 $templateDir .= 'login.tpl';
                 break;
@@ -130,5 +132,16 @@ class authControl extends Smarty {
             }
         }
         return $isUuidStillAlive;
+    }
+
+    /**
+     * セッションを廃棄しログアウト
+     * 
+     * ログインページへ遷移
+     */
+    public function logout(){
+        session_destroy();
+        header('Location: auth.php');
+        exit;
     }
 }
