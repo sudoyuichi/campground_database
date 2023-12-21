@@ -19,5 +19,7 @@
     <p>You are not logged in.</p>
 {/if}
 
+<a href=auth.php?mode=logout>ログアウト</a>
+
 </body>
 </html>
