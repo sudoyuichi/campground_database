@@ -75,7 +75,7 @@ class authControl extends Smarty {
                 $email = $_POST['email'];
                 $password = $_POST['password'];
                 # パスワード認証
-                $isLogin = $userModel->verifyPassword($email, $password);
+                $isLogin = $this->verifyPassword($email, $password, $userModel);
                 if ($isLogin) {
                     $templateDir = 'Main/';
                     $templateDir .= 'main.tpl';
@@ -110,6 +110,34 @@ class authControl extends Smarty {
             'isUuidStillAlive' => $isUuidStillAlive,
         ]);
         $this->display($templateDir);
+    }
+
+    /**
+     * パスワード認証を行う
+     *
+     * @param string $email メールアドレス
+     * @param string $password パスワード
+     * @param userModel $userModel userModelクラスのインスタンス
+     * @return bool　認証に成功したらtrue
+     */
+    public function verifyPassword($email, $password, $userModel) {
+        try{
+            # アドレスでユーザデータを取得
+            $user = $userModel->getUserByEmail($email);
+            # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
+            if ($user && $user['registration_status'] == 1 && password_verify($password, $user['password'])) {
+                session_start();
+                session_regenerate_id();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['isLogin'] = true;
+                return true;
+            }
+        }catch (Exception $e){
+            error_log('ログイン認証に失敗しました。: ' . $e->getMessage());
+            return false;
+        }
+        return false;
     }
 
     /**
