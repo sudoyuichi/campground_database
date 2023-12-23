@@ -12,11 +12,8 @@
 
 <h1>メインページ</h1>
 
-{if isset($smarty.session.name)}
+{if isset($smarty.session.isLogin)}
     <h2>ようこそ, {$smarty.session.name}様!</h2>
-{else}
-    <!-- ログインしていない場合の処理 -->
-    <p>You are not logged in.</p>
 {/if}
 
 </body>
