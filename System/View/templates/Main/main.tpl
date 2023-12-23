@@ -12,7 +12,7 @@
 
 <h1>メインページ</h1>
 
-{if isset($smarty.session.user_id)}
+{if isset($smarty.session.isLogin)}
     <h2>ようこそ, {$smarty.session.name}様!</h2>
 {/if}
 
