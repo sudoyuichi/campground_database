@@ -69,26 +69,6 @@ class userModel {
     }
 
     /**
-     * パスワード認証を行うメソッド
-     *
-     * @param string $email メールアドレス
-     * @param string $password パスワード
-     * @return bool　認証に成功したらtrue
-     */
-    public function verifyPassword($email, $password) {
-        # アドレスでユーザデータを取得
-        $user = $this->getUserByEmail($email);
-        # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
-        if ($user['registration_status'] == 1 && password_verify($password, $user['password'])) {
-            session_start();
-            session_regenerate_id();
-            $_SESSION['name'] = $user['name'];
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * UUIDから登録データを取得
      *
      * @param int $uuid UUID
