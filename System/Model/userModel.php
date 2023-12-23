@@ -69,32 +69,6 @@ class userModel {
     }
 
     /**
-     * パスワード認証を行う
-     *
-     * @param string $email メールアドレス
-     * @param string $password パスワード
-     * @return bool　認証に成功したらtrue
-     */
-    public function verifyPassword($email, $password) {
-        try{
-            # アドレスでユーザデータを取得
-            $user = $this->getUserByEmail($email);
-            # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
-            if ($user['registration_status'] == 1 && password_verify($password, $user['password'])) {
-                session_start();
-                session_regenerate_id();
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['name'] = $user['name'];
-                return true;
-            }
-        }catch (Exception $e){
-            error_log('ログイン認証に失敗しました。: ' . $e->getMessage());
-            return false;
-        }
-        return false;
-    }
-
-    /**
      * UUIDから登録データを取得
      *
      * @param int $uuid UUID
