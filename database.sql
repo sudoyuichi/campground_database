@@ -20,3 +20,11 @@ CREATE TABLE users (
     updated_at DATETIME,
     deleted_at DATETIME
     );
+
+CREATE TABLE user_agreements (
+    ID INT PRIMARY KEY,
+    user_id INT,
+    privacy_policy_agreed INT DEFAULT 0,
+    terms_of_service_agreed INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
