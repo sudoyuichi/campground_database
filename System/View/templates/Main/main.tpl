@@ -16,5 +16,7 @@
     <h2>ようこそ, {$smarty.session.name}様!</h2>
 {/if}
 
+<a href=auth.php?mode=logout>ログアウト</a>
+
 </body>
 </html>
