@@ -25,6 +25,7 @@ class authControl extends Smarty {
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
         $this->setCacheDir($this->rootPath . VIEW_PATH . '/cache/');
         $this->setConfigDir($this->rootPath . VIEW_PATH . '/configs/');
+        session_start();
     }
 
     /**
@@ -99,6 +100,10 @@ class authControl extends Smarty {
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
+            case 'logout':
+                $this->logout();
+                $templateDir .= 'login.tpl';
+                break;
             default:
                 $templateDir .= 'login.tpl';
                 break;
@@ -126,7 +131,6 @@ class authControl extends Smarty {
             $user = $userModel->getUserByEmail($email);
             # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
             if ($user && $user['registration_status'] == 1 && password_verify($password, $user['password'])) {
-                session_start();
                 session_regenerate_id();
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
@@ -158,5 +162,14 @@ class authControl extends Smarty {
             }
         }
         return $isUuidStillAlive;
+    }
+
+    /**
+     * セッションを廃棄しログアウト
+     * 
+     * ログインページへ遷移
+     */
+    public function logout(){
+        session_destroy();
     }
 }
