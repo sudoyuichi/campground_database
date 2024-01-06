@@ -13,7 +13,22 @@
 <h1>メインページ</h1>
 
 {if isset($smarty.session.isLogin)}
-    <h2>ようこそ, {$smarty.session.name}様!</h2>
+    <!-- 利用者の同意や登録状態をチェック -->
+    {if !$smarty.session.privacyPolicy}
+        <script>
+            window.location.href = 'userDetail.php';
+        </script>
+    {elseif !$smarty.session.termsOfService}
+        <script>
+            window.location.href = 'userDetail.php';
+        </script>
+    {elseif !$smarty.session.completedToUserDetailRegistration}
+        <script>
+            window.location.href = 'userDetail.php';
+        </script>
+    {else}
+        <h2>ようこそ, {$smarty.session.name}様!</h2>
+    {/if}
 {/if}
 
 <a href=auth.php?mode=logout>ログアウト</a>
