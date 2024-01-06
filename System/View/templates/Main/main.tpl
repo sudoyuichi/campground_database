@@ -27,7 +27,7 @@
             window.location.href = 'userDetail.php';
         </script>
     {else}
-        <h2>ようこそ, {$smarty.session.name}様!</h2>
+        <h2>ようこそ, {$smarty.session.nick_name}様!</h2>
     {/if}
 {/if}
 
