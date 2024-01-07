@@ -77,10 +77,15 @@ class authControl extends Smarty {
                 $email = $_POST['email'];
                 $password = $_POST['password'];
                 # パスワード認証
-                $isLogin = $this->common->verifyPassword($email, $password, $userModel);
+                $isLoginSuccess = $this->verifyPassword($email, $password, $userModel);
                 // ユーザの規約への同意や登録状況に応じて各セッション項目をtrueへ設定
                 $this->common->verifyRegistrationProgress($userDetailModel);
-                if ($isLogin) {
+                if ($isLoginSuccess){
+                    # ログインに成功し、規約への同意・詳細登録まで完了している場合
+                    if ($_SESSION['privacyPolicy'] == true && $_SESSION['termsOfService'] == true && $_SESSION['completedToUserDetailRegistration'] == true
+                    ) {
+                        $_SESSION['isLogin'] = true;
+                    }
                     $templateDir = 'Main/';
                     $templateDir .= 'main.tpl';
                     break;
@@ -120,5 +125,36 @@ class authControl extends Smarty {
             'isUuidStillAlive' => $isUuidStillAlive,
         ]);
         $this->display($templateDir);
+    }
+
+    /**
+     * パスワード認証を行う
+     *
+     * @param string $email メールアドレス
+     * @param string $password パスワード
+     * @param userModel $userModel userModelクラスのインスタンス
+     * @return bool　認証に成功したらtrue
+     */
+    public function verifyPassword($email, $password, $userModel) {
+        try{
+            # アドレスでユーザデータを取得
+            $user = $userModel->getUserByEmail($email);
+            # 取得したユーザステータスが1、かつハッシュ化されたパスワードが正しい場合
+            if ($user && $user['registration_status'] == 1 && password_verify($password, $user['password'])) {
+                session_regenerate_id();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['isLogin'] = false;
+                $_SESSION['privacyPolicy'] = false;
+                $_SESSION['termsOfService'] = false;
+                $_SESSION['completedToUserDetailRegistration'] = false;
+                $_SESSION['nick_name'] = null;
+                return true;
+            }
+        }catch (Exception $e){
+            error_log('ログイン認証に失敗しました。: ' . $e->getMessage());
+            return false;
+        }
+        return false;
     }
 }
