@@ -5,6 +5,7 @@ $rootPath = __DIR__ . '/..';
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
 require_once $rootPath . MODEL_PATH . '/userModel.php';
+require_once $rootPath . MODEL_PATH . '/userDetailModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class authControl extends Smarty {
@@ -25,7 +26,6 @@ class authControl extends Smarty {
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
         $this->setCacheDir($this->rootPath . VIEW_PATH . '/cache/');
         $this->setConfigDir($this->rootPath . VIEW_PATH . '/configs/');
-        session_start();
     }
 
     /**
@@ -40,6 +40,7 @@ class authControl extends Smarty {
         $uuid = null;
         $isUuidStillAlive = null;
         $userModel = new userModel();
+        $userDetailModel = new userDetailModel();
         switch ($mode) {
             # ユーザ登録ページ呼び出し
             case 'entry':
@@ -76,8 +77,15 @@ class authControl extends Smarty {
                 $email = $_POST['email'];
                 $password = $_POST['password'];
                 # パスワード認証
-                $isLogin = $this->verifyPassword($email, $password, $userModel);
-                if ($isLogin) {
+                $isLoginSuccess = $this->verifyPassword($email, $password, $userModel);
+                // ユーザの規約への同意や登録状況に応じて各セッション項目をtrueへ設定
+                $this->common->verifyRegistrationProgress($userDetailModel);
+                if ($isLoginSuccess){
+                    # ログインに成功し、規約への同意・詳細登録まで完了している場合
+                    if ($_SESSION['privacyPolicy'] == true && $_SESSION['termsOfService'] == true && $_SESSION['completedToUserDetailRegistration'] == true
+                    ) {
+                        $_SESSION['isLogin'] = true;
+                    }
                     $templateDir = 'Main/';
                     $templateDir .= 'main.tpl';
                     break;
@@ -90,18 +98,20 @@ class authControl extends Smarty {
                 # uuidからユーザデータを取得
                 $userData = $userModel->getUserDataByUuid($uuid);
                 # 取得したユーザデータのuuidの登録期限が期限内かチェック
-                $isUuidStillAlive = $this->checkUuidStillValid($userData);
+                $isUuidStillAlive = $this->common->checkUuidStillValid($userData);
                 if($isUuidStillAlive){
                     $templateDir .= 'showRegistrationResult.tpl';
                     # 登録ステータスを本登録へ変更
                     $userModel->updateRegistrationStatus($userData['id'], authControl::FULL_REGISTRATION);
+                    # ここでユーザ詳細情報テーブルにも新規ユーザを追加
+                    $userDetailModel->createUserDetail($userData['id']);
                     break;
                 }
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
             case 'logout':
-                $this->logout();
+                $this->common->logout();
                 $templateDir .= 'login.tpl';
                 break;
             default:
@@ -134,7 +144,11 @@ class authControl extends Smarty {
                 session_regenerate_id();
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
-                $_SESSION['isLogin'] = true;
+                $_SESSION['isLogin'] = false;
+                $_SESSION['privacyPolicy'] = false;
+                $_SESSION['termsOfService'] = false;
+                $_SESSION['completedToUserDetailRegistration'] = false;
+                $_SESSION['nick_name'] = null;
                 return true;
             }
         }catch (Exception $e){
@@ -142,34 +156,5 @@ class authControl extends Smarty {
             return false;
         }
         return false;
-    }
-
-    /**
-     * uuidが有効期限内であるかを確認
-     *
-     * @param array $userData uuidで取得したユーザデータ
-     * @return bool $isUuidStillAlive uuidが有効期限内かの判定結果
-     */
-    public function checkUuidStillValid($userData) {
-        $now = date('Y-m-d H:i:s');
-        $isUuidStillAlive = False;
-        # データが取れた場合
-        if($userData){
-            $expirationLimit = $userData['password_reset_expiration'];
-            # 現在が発行期限内であるかを確認
-            if($now <= $expirationLimit){
-                $isUuidStillAlive = true;
-            }
-        }
-        return $isUuidStillAlive;
-    }
-
-    /**
-     * セッションを廃棄しログアウト
-     * 
-     * ログインページへ遷移
-     */
-    public function logout(){
-        session_destroy();
     }
 }
