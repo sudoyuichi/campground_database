@@ -9,8 +9,8 @@ require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.ph
 class CommonControl extends Smarty {
 
     // プライバシポリシーまたは利用規約の最新更新日を定義
-    const LATEST_PRIVACY_POLICY = '2024-01-01';
-    const LATEST_TERMS_OF_SERVICE = '2024-01-01';
+    const LATEST_PRIVACY_POLICY = '2025-01-01';
+    const LATEST_TERMS_OF_SERVICE = '2025-01-01';
     
     public function __construct() {
         // 日本のタイムゾーンを設定
@@ -24,6 +24,18 @@ class CommonControl extends Smarty {
         // ini_set('display_errors', 0);
     }
     
+    /**
+     * セッションが正しいかの認証を行う
+     *
+     * @return bool 認証が成功した場合は true、失敗した場合は false
+     */
+    public function authenticateSession() {
+        if (isset($_SESSION) && $_SESSION['isLogin']) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * UUIDを生成
      * 
@@ -41,26 +53,6 @@ class CommonControl extends Smarty {
     }
 
     /**
-     * uuidが有効期限内であるかを確認
-     *
-     * @param array $userData uuidで取得したユーザデータ
-     * @return bool $isUuidStillAlive uuidが有効期限内かの判定結果
-     */
-    public function checkUuidStillValid($userData) {
-        $now = date('Y-m-d H:i:s');
-        $isUuidStillAlive = False;
-        # データが取れた場合
-        if($userData){
-            $expirationLimit = $userData['password_reset_expiration'];
-            # 現在が発行期限内であるかを確認
-            if($now <= $expirationLimit){
-                $isUuidStillAlive = true;
-            }
-        }
-        return $isUuidStillAlive;
-    }
-    
-    /**
      * 利用規約、プライバシーポリシーへの同意とユーザ詳細登録の進捗状況
      * セッションデータへ保存
      * 
@@ -69,27 +61,18 @@ class CommonControl extends Smarty {
      */
     public function verifyRegistrationProgress($userDetailModel){
         # user_idを条件にuser_detailsテーブルからデータ取得
-        $progressData = $userDetailModel->getRegistrationProgress($_SESSION['user_id']);
-        if ($progressData != null){
+        $progressData = $userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
+        if ($progressData !== null){
             if ($progressData['privacy_policy_agreed'] >= CommonControl::LATEST_PRIVACY_POLICY){
                 $_SESSION['privacyPolicy'] = true;
             }
             if ($progressData['terms_of_service_agreed'] >= CommonControl::LATEST_TERMS_OF_SERVICE){
                 $_SESSION['termsOfService'] = true;
             }
-            if ($progressData['nick_name']){
+            if ($progressData['nick_name'] !== null){
                 $_SESSION['completedToUserDetailRegistration'] = true;
                 $_SESSION['nick_name'] = $progressData['nick_name'];
             }
         }
-    }
-
-    /**
-     * セッションを廃棄しログアウト
-     * 
-     * ログインページへ遷移
-     */
-    public function logout(){
-        session_destroy();
     }
 }
