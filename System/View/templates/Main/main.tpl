@@ -12,13 +12,10 @@
 
 <h1>メインページ</h1>
 
-{if !$smarty.session.isLogin}
-        <script>
-            window.location.href = 'userDetail.php';
-        </script>
+{if $smarty.session.isLogin}
+    <h2>ようこそ, {$smarty.session.nick_name}様!</h2>
+    <a href=userDetail.php?mode=showUserDetail>登録情報を見る</a>
+    <a href=auth.php?mode=logout>ログアウト</a>
 {/if}
-<h2>ようこそ, {$smarty.session.nick_name}様!</h2>
-<a href=auth.php?mode=logout>ログアウト</a>
-
 </body>
 </html>
