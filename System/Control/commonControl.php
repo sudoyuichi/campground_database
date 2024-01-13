@@ -9,8 +9,8 @@ require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.ph
 class CommonControl extends Smarty {
 
     // プライバシポリシーまたは利用規約の最新更新日を定義
-    const LATEST_PRIVACY_POLICY = '2025-01-01';
-    const LATEST_TERMS_OF_SERVICE = '2025-01-01';
+    const LATEST_PRIVACY_POLICY = '2024-01-01';
+    const LATEST_TERMS_OF_SERVICE = '2024-01-01';
     
     public function __construct() {
         // 日本のタイムゾーンを設定
