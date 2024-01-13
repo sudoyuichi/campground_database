@@ -16,6 +16,12 @@ class userDetailControl extends Smarty {
         $this->rootPath = $rootPath;
         // commonControlのインスタンスを作成
         $this->common = new commonControl();
+        // ここでセッションのisLoginがTrueかチェック
+        if(!$this->common->authenticateSession()){
+            // ログインされてなければログイン画面へリダイレクト
+            header('Location: ' .HOST_NAME .'/auth.php');
+            exit();
+        }
         parent::__construct();
         $this->setTemplateDir($this->rootPath . VIEW_PATH . '/templates/');
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
@@ -34,14 +40,12 @@ class userDetailControl extends Smarty {
         switch ($mode) {
             case 'privacy_policy_agreed':
                 $_SESSION['privacyPolicy'] = $this->userDetailModel->updateAgreementTime($_SESSION['user_id'], $mode);
-                $templateDir = 'Main/';
-                $templateDir .= 'main.tpl';
-                break;
+                header('Location: ' .HOST_NAME .'/userDetail.php');
+                exit();
             case 'terms_of_service_agreed':
                 $_SESSION['termsOfService'] = $this->userDetailModel->updateAgreementTime($_SESSION['user_id'], $mode);
-                $templateDir = 'Main/';
-                $templateDir .= 'main.tpl';
-                break;
+                header('Location: ' .HOST_NAME .'/userDetail.php');
+                exit();
             case 'userDetailRegister':
                 $birthdate = $_POST['birthdate'];
                 $residence_prefecture = $_POST['residence_prefecture'];
@@ -56,26 +60,45 @@ class userDetailControl extends Smarty {
                 $_SESSION['completedToUserDetailRegistration'] = $this->userDetailModel->updateUserDetail(
                     $birthdate, $residence_prefecture, $nick_name, $twitter_url, $instagram_url, $youtube_channel_url, $blog_url,
                     $icon_url, $profile_image_url, $self_introduction, $_SESSION['user_id'],);
-                $templateDir = 'Main/';
-                $templateDir .= 'main.tpl';
+                header('Location: ' .HOST_NAME .'/userDetail.php');
+                exit();
+            case 'showModifyUserDetail':
+                $templateDir .= 'modifyUserDetail.tpl';
+                break;
+            case 'showUserDetail':
+                $templateDir .= 'showUserDetail.tpl';
                 break;
             default:
                 if ($_SESSION['privacyPolicy'] == false) {
                     $templateDir .= 'privacyPolicy.tpl';
+                    break;
                 } elseif ($_SESSION['termsOfService'] == false) {
                     $templateDir .= 'termsOfService.tpl';
+                    break;
                 } elseif ($_SESSION['completedToUserDetailRegistration'] == false) {
                     $templateDir .= 'userDetailRegister.tpl';
+                    break;
                 } else {
-                    if ($_SESSION['privacyPolicy'] == true && $_SESSION['termsOfService'] == true && $_SESSION['completedToUserDetailRegistration'] == true
-                    ) {
-                        $_SESSION['isLogin'] = true;
-                    }
-                    $templateDir = 'Main/';
-                    $templateDir .= 'main.tpl';
+                    $templateDir .= 'showUserDetail.tpl';
+                    break;
                 }
-                break;
             }
         $this->display($templateDir);
+    }
+
+    // 以下のメソッドは使用していなが、念の為残す
+    public function getPrivacyPolicyAgreementFromUserId($user_id){
+        $user_data = $this->getUserDetailFromUserId($user_id);
+        return $user_data['privacy_policy_agreed'];
+    }
+
+    public function getTermsOfServiceAgreedFromUserId($user_id){
+        $user_data = $this->getUserDetailFromUserId($user_id);
+        return $user_data['terms_of_service_agreed'];
+    }
+
+    public function getNickNameFromUserId($user_id){
+        $user_data = $this->getUserDetailFromUserId($user_id);
+        return $user_data['nick_name'];
     }
 }

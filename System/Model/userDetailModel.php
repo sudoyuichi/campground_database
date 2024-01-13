@@ -5,6 +5,7 @@ class userDetailModel {
 
     private $db;
     private $connection;
+    const TABLE_NAME = 'user_details'; 
 
     public function __construct() {
         $this->db = new dbCommonModel();
@@ -22,7 +23,7 @@ class userDetailModel {
         try{
             # DBへとユーザ詳細登録するクエリ
             $query = $this->connection->prepare(
-                "INSERT INTO user_details (user_id) VALUES (:user_id)");
+                "INSERT INTO " .self::TABLE_NAME . " (user_id) VALUES (:user_id)");
             $query->bindParam(':user_id', $user_id);
             $query->execute();
             $returnVal = true;
@@ -47,7 +48,7 @@ class userDetailModel {
             // user_detailテーブルの列名
             $columnName = $mode;
             $query = $this->connection->prepare(
-                "UPDATE user_details SET $columnName = :now WHERE user_id = :userId");
+                'UPDATE ' .self::TABLE_NAME . ' SET $columnName = :now WHERE user_id = :userId');
             $query->bindParam(':now', $now);
             $query->bindParam(':userId', $userId);
             $query->execute();
@@ -82,7 +83,7 @@ class userDetailModel {
         $returnVal = false;
         try {
             $query = $this->connection->prepare(
-                "UPDATE user_details SET 
+                'UPDATE ' .self::TABLE_NAME . ' SET 
                 birthdate = COALESCE(:birthdate, birthdate),
                 residence_prefecture = COALESCE(:residence_prefecture, residence_prefecture),
                 nick_name = COALESCE(:nick_name, nick_name),
@@ -93,7 +94,7 @@ class userDetailModel {
                 icon_url = COALESCE(:icon_url, icon_url),
                 profile_image_url = COALESCE(:profile_image_url, profile_image_url),
                 self_introduction = COALESCE(:self_introduction, self_introduction)
-                WHERE user_id = :user_id");
+                WHERE user_id = :user_id');
             $query->bindParam(':nick_name', $nick_name);
             $query->bindParam(':user_id', $user_id);
             $query->bindValue(':birthdate', !empty($birthdate) ? $birthdate : null, PDO::PARAM_NULL);
@@ -116,24 +117,21 @@ class userDetailModel {
     }
 
     /**
-    * ユーザ登録進捗を取得するメソッド
-    *
+    * user_detailテーブルからデータ取得
+    * 
     * @param int $user_id usersテーブルのID
-    * @return array|null 成功した場合はプライバシポリシー、利用規約、ニックネームを返却。
+    * @return array|null user_idに合致するデータがあれば全レコード。
     */
-    public function getRegistrationProgress($user_id){
+    public function getUserDetailFromUserId($user_id){
         $userData = null;
         try{
-            # UUIDを条件にデータ取得
             $query = $this->connection->prepare(
-                "SELECT privacy_policy_agreed, terms_of_service_agreed, nick_name 
-                FROM user_details 
-                WHERE user_id = :user_id");
+                'SELECT * FROM ' .self::TABLE_NAME . ' WHERE user_id = :user_id and deleted_at is Null');
             $query->bindParam(':user_id', $user_id);
             $query->execute();
             $userData = $query->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            $errorMessage = 'ユーザ登録の進捗データ取得に失敗しました。: ' . $e->getMessage();
+            $errorMessage = 'user_detailからのデータ取得に失敗しました。: ' . $e->getMessage();
             error_log($errorMessage);
             return $userData;
         }
