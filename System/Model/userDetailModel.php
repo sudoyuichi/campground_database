@@ -48,7 +48,7 @@ class userDetailModel {
             // user_detailテーブルの列名
             $columnName = $mode;
             $query = $this->connection->prepare(
-                'UPDATE ' .self::TABLE_NAME . ' SET $columnName = :now WHERE user_id = :userId');
+                'UPDATE ' .self::TABLE_NAME . ' SET ' .$columnName .' = :now WHERE user_id = :userId');
             $query->bindParam(':now', $now);
             $query->bindParam(':userId', $userId);
             $query->execute();
