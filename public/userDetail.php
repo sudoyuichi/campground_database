@@ -1,7 +1,7 @@
 <?php
 
 require_once './envPbulic.php';
-require_once CLASS_PATH.'/authControl.php';
+require_once CLASS_PATH.'/userDetailControl.php';
 
 # Getメソッドの場合
 $mode = null;
@@ -12,5 +12,5 @@ if (isset($_GET['mode'])){
 if (isset($_POST['mode'])){
     $mode = $_POST['mode'];
 }
-$authObuject = new authControl();
-$authObuject->execute($mode);
+$userDetailObuject = new userDetailControl();
+$userDetailObuject->execute($mode);

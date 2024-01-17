@@ -17,12 +17,16 @@ class mainControl extends Smarty {
         $this->rootPath = $rootPath;
         // commonControlのインスタンスを作成
         $this->common = new commonControl();
+        // セッションのisLoginがFalseならログインページへ戻す
+        if(!$this->common->authenticateSession()){
+            header('Location: ' .HOST_NAME .'/auth.php');
+            exit();
+        }
         parent::__construct();
         $this->setTemplateDir($this->rootPath . VIEW_PATH . '/templates/');
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
         $this->setCacheDir($this->rootPath . VIEW_PATH . '/cache/');
         $this->setConfigDir($this->rootPath . VIEW_PATH . '/configs/');
-        session_start();
     }
 
     /**
@@ -35,8 +39,12 @@ class mainControl extends Smarty {
         $errorMsg = null;
         $this->ensureSessionStarted();
         switch ($mode) {
-           
             default:
+                // 未同意または未登録があればそのページへ移動
+                if(!$_SESSION['privacyPolicy'] || !$_SESSION['termsOfService'] || !$_SESSION['completedToUserDetailRegistration']){
+                    header('Location: ' .HOST_NAME .'/userDetail.php');
+                    exit();
+                }
                 $_SESSION['name'] = 'test';
                 $templateDir .= 'main.tpl';
                 break;

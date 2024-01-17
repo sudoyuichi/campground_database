@@ -5,6 +5,7 @@ $rootPath = __DIR__ . '/..';
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
 require_once $rootPath . MODEL_PATH . '/userModel.php';
+require_once $rootPath . MODEL_PATH . '/userDetailModel.php';
 require_once $rootPath . VIEW_PATH . '/vendor/smarty/smarty/libs/Smarty.class.php';
 
 class authControl extends Smarty {
@@ -25,7 +26,6 @@ class authControl extends Smarty {
         $this->setCompileDir($this->rootPath . VIEW_PATH . '/templates_c/');
         $this->setCacheDir($this->rootPath . VIEW_PATH . '/cache/');
         $this->setConfigDir($this->rootPath . VIEW_PATH . '/configs/');
-        session_start();
     }
 
     /**
@@ -40,6 +40,7 @@ class authControl extends Smarty {
         $uuid = null;
         $isUuidStillAlive = null;
         $userModel = new userModel();
+        $userDetailModel = new userDetailModel();
         switch ($mode) {
             # ユーザ登録ページ呼び出し
             case 'entry':
@@ -77,10 +78,11 @@ class authControl extends Smarty {
                 $password = $_POST['password'];
                 # パスワード認証
                 $isLogin = $this->verifyPassword($email, $password, $userModel);
-                if ($isLogin) {
-                    $templateDir = 'Main/';
-                    $templateDir .= 'main.tpl';
-                    break;
+                if ($isLogin){
+                    $_SESSION['isLogin'] = true;
+                    $this->common->verifyRegistrationProgress($userDetailModel);
+                    header('Location: ' .HOST_NAME .'/main.php');
+                    exit();
                 }
                 $errorMsg = 'ログインに失敗しました';
                 $templateDir .= 'login.tpl';
@@ -91,10 +93,12 @@ class authControl extends Smarty {
                 $userData = $userModel->getUserDataByUuid($uuid);
                 # 取得したユーザデータのuuidの登録期限が期限内かチェック
                 $isUuidStillAlive = $this->checkUuidStillValid($userData);
-                if($isUuidStillAlive){
+                if($isUuidStillAlive && !$this->isExistUserDetailFromUserId($userData['id'], $userDetailModel)){
                     $templateDir .= 'showRegistrationResult.tpl';
                     # 登録ステータスを本登録へ変更
                     $userModel->updateRegistrationStatus($userData['id'], authControl::FULL_REGISTRATION);
+                    # ここでユーザ詳細情報テーブルにも新規ユーザを追加
+                    $userDetailModel->createUserDetail($userData['id']);
                     break;
                 }
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
@@ -134,7 +138,10 @@ class authControl extends Smarty {
                 session_regenerate_id();
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
-                $_SESSION['isLogin'] = true;
+                $_SESSION['privacyPolicy'] = false;
+                $_SESSION['termsOfService'] = false;
+                $_SESSION['completedToUserDetailRegistration'] = false;
+                $_SESSION['nick_name'] = null;
                 return true;
             }
         }catch (Exception $e){
@@ -171,5 +178,19 @@ class authControl extends Smarty {
      */
     public function logout(){
         session_destroy();
+    }
+
+    /**
+    * user_detailテーブルに同じIDの既存データがあるか確認
+    * 
+    * @param int $user_id usersテーブルのID
+    * @return bool 既存データがあればTrue、なければFalse
+    */
+    public function isExistUserDetailFromUserId($user_id, $userDetailModel){
+        $user_data = $userDetailModel->getUserDetailFromUserId($user_id);
+        if($user_data == null){
+            return false;
+        }
+        return true;
     }
 }
