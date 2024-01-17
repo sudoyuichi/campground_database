@@ -20,3 +20,24 @@ CREATE TABLE users (
     updated_at DATETIME,
     deleted_at DATETIME
     );
+
+CREATE TABLE user_details (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    privacy_policy_agreed DATETIME,
+    terms_of_service_agreed DATETIME,
+    birthdate DATE,
+    residence_prefecture VARCHAR(255),
+    nick_name VARCHAR(255),
+    twitter_url VARCHAR(255),
+    instagram_url VARCHAR(255),
+    youtube_channel_url VARCHAR(255),
+    blog_url VARCHAR(255),
+    icon_url VARCHAR(255),
+    profile_image_url VARCHAR(255),
+    self_introduction TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME
+);
