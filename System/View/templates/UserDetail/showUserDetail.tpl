@@ -34,7 +34,7 @@
             <td>{$smarty.session.user_data.youtube_channel_url}</td>
             <td>{$smarty.session.user_data.blog_url}</td>
             <td>
-                {if $smarty.session.user_data.profile_image_url}
+                {if $smarty.session.user_data.icon_url}
                     <img src="{$smarty.session.user_data.icon_url}" alt="アイコン画像"　width="250" height="250">
                 {else}
                     画像なし
