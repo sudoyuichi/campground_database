@@ -46,19 +46,16 @@ class userDetailControl extends Smarty {
                 $_SESSION['termsOfService'] = $this->userDetailModel->updateAgreementTime($_SESSION['user_id'], $mode);
                 header('Location: ' .HOST_NAME .'/userDetail.php');
                 exit();
-            case 'userDetailRegister':
-                $this->updateUserDetail();
-                header('Location: ' .HOST_NAME .'/userDetail.php');
-                exit();
+            // 同じ処理をするが初期登録と更新で区別する様にあえてcase名は別で設定。
+            case 'userDetailRegister': // ユーザ詳細初期登録
+            case 'updateUserDetail':   // ユーザ詳細更新
+                $this->updateUserDetail();    
+                $templateDir .= 'showUserDetail.tpl';
+                break;
             case 'showModifyUserDetail':
                 $templateDir .= 'modifyUserDetail.tpl';
                 break;
             case 'showUserDetail':
-                $templateDir .= 'showUserDetail.tpl';
-                break;
-            case 'updateUserDetail':
-                $this->updateUserDetail();
-                $_SESSION['user_data'] = $this->userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
                 $templateDir .= 'showUserDetail.tpl';
                 break;
             default:
@@ -122,6 +119,7 @@ class userDetailControl extends Smarty {
             $birthdate, $residence_prefecture, $nick_name, $twitter_url, $instagram_url, $youtube_channel_url, $blog_url,
             $icon_url, $profile_image_url, $self_introduction, $_SESSION['user_id']
         );
+        $_SESSION['user_data'] = $this->userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
     }
 
     // 以下のメソッドは使用していなが、念の為残す
