@@ -21,7 +21,7 @@
             </tr>
             <tr>
                 <td><label for="birthdate">生年月日</label></td>
-                <td><input type="date" id="birthdate" name="birthdate" value="{$smarty.session.user_data.birthdate}"></td>
+                <td><input type="date" id="birthdate" name="birthdate" value="{$smarty.session.user_data.birthdate}" required></td>
             </tr>
             <tr>
                 <td><label for="residence_prefecture">居住都道府県</label></td>

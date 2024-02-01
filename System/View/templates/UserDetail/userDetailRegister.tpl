@@ -13,7 +13,7 @@
         <input type="text" id="nick_name" name="nick_name" required>
         <br>
         <label for="birthdate">生年月日:</label>
-        <input type="date" id="birthdate" name="birthdate" value="">
+        <input type="date" id="birthdate" name="birthdate" value="" required>
         <br>
         <label for="residence_prefecture">居住都道府県:</label>
         <input type="text" id="residence_prefecture" name="residence_prefecture" value="">
