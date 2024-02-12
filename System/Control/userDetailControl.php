@@ -46,22 +46,12 @@ class userDetailControl extends Smarty {
                 $_SESSION['termsOfService'] = $this->userDetailModel->updateAgreementTime($_SESSION['user_id'], $mode);
                 header('Location: ' .HOST_NAME .'/userDetail.php');
                 exit();
-            case 'userDetailRegister':
-                $birthdate = $_POST['birthdate'];
-                $residence_prefecture = $_POST['residence_prefecture'];
-                $nick_name = $_POST['nick_name'];
-                $twitter_url = $_POST['twitter_url'];
-                $instagram_url = $_POST['instagram_url'];
-                $youtube_channel_url = $_POST['youtube_channel_url'];
-                $blog_url = $_POST['blog_url'];
-                $icon_url = $_POST['icon_url'];
-                $profile_image_url = $_POST['profile_image_url'];
-                $self_introduction = $_POST['self_introduction'];
-                $_SESSION['completedToUserDetailRegistration'] = $this->userDetailModel->updateUserDetail(
-                    $birthdate, $residence_prefecture, $nick_name, $twitter_url, $instagram_url, $youtube_channel_url, $blog_url,
-                    $icon_url, $profile_image_url, $self_introduction, $_SESSION['user_id'],);
-                header('Location: ' .HOST_NAME .'/userDetail.php');
-                exit();
+            // 同じ処理をするが初期登録と更新で区別する様にあえてcase名は別で設定。
+            case 'userDetailRegister': // ユーザ詳細初期登録
+            case 'updateUserDetail':   // ユーザ詳細更新
+                $this->updateUserDetail();    
+                $templateDir .= 'showUserDetail.tpl';
+                break;
             case 'showModifyUserDetail':
                 $templateDir .= 'modifyUserDetail.tpl';
                 break;
@@ -80,10 +70,56 @@ class userDetailControl extends Smarty {
                     break;
                 } else {
                     $templateDir .= 'showUserDetail.tpl';
+                    $_SESSION['user_data'] = $this->userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
                     break;
                 }
             }
         $this->display($templateDir);
+    }
+
+    /**
+     * POSTされた画像ファイルを保存し、相対パスを返却
+     * 
+     * @param string $file_key POSTされたファイルのキーとなる名前
+     * @param string $storage_name ファイル格納場所名
+     * @return string　tplファイルから画像を呼ぶ為の相対パス
+     */
+    public function uploadImage($file_key, $storage_name){
+        if(!empty($_FILES[$file_key])){
+            // ユーザIDを画像ファイルの先頭に付ける事でファイル名の重複を防止
+            $filename = $_SESSION['user_id'].$_FILES[$file_key]['name'];
+            $uploaded_path = $this->rootPath.'/Uploads/'.$storage_name.$filename;
+            $path_from_tpl = './../System/Uploads/'.$storage_name.$filename;
+            $result = move_uploaded_file($_FILES[$file_key]['tmp_name'],$uploaded_path);
+            if($result){
+                return $path_from_tpl;
+            }else{
+                error_log('アップロードファイルの保存に失敗。');
+                return null;
+            }
+        }else{
+            error_log('アップロードファイルの取得に失敗。');
+            return null;
+        }
+    }
+
+    /**POSTされた情報からユーザ詳細を更新*/
+    public function updateUserDetail() {
+        $birthdate = $_POST['birthdate'];
+        $residence_prefecture = $_POST['residence_prefecture'];
+        $nick_name = $_POST['nick_name'];
+        $twitter_url = $_POST['twitter_url'];
+        $instagram_url = $_POST['instagram_url'];
+        $youtube_channel_url = $_POST['youtube_channel_url'];
+        $blog_url = $_POST['blog_url'];
+        $icon_url = $this->uploadImage('icon_url', 'Icon/');
+        $profile_image_url = $this->uploadImage('profile_image_url', 'Profil/');
+        $self_introduction = $_POST['self_introduction'];
+        $_SESSION['completedToUserDetailRegistration'] = $this->userDetailModel->updateUserDetail(
+            $birthdate, $residence_prefecture, $nick_name, $twitter_url, $instagram_url, $youtube_channel_url, $blog_url,
+            $icon_url, $profile_image_url, $self_introduction, $_SESSION['user_id']
+        );
+        $_SESSION['user_data'] = $this->userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
     }
 
     // 以下のメソッドは使用していなが、念の為残す

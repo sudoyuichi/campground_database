@@ -97,7 +97,10 @@ class userDetailModel {
                 WHERE user_id = :user_id');
             $query->bindParam(':nick_name', $nick_name);
             $query->bindParam(':user_id', $user_id);
-            $query->bindValue(':birthdate', !empty($birthdate) ? $birthdate : null, PDO::PARAM_NULL);
+            $query->bindParam(':birthdate', $birthdate);
+            if (empty($birthdate)){
+                $query->bindParam(':birthdate', $birthdate, PDO::PARAM_NULL);
+            }
             $query->bindParam(':residence_prefecture', $residence_prefecture);
             $query->bindParam(':twitter_url', $twitter_url);
             $query->bindParam(':instagram_url', $instagram_url);

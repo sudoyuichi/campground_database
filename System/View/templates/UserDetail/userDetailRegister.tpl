@@ -7,13 +7,13 @@
 </head>
 <body>
     <h1>ユーザ詳細情報登録</h1>
-    <form action="userDetail.php" method="post">
+    <form action="userDetail.php" method="post" enctype="multipart/form-data">
         <input type="hidden" name="mode" value="userDetailRegister">
         <label for="nick_name">ニックネーム<span style="color: red;">*</span>:</label>
         <input type="text" id="nick_name" name="nick_name" required>
         <br>
         <label for="birthdate">生年月日:</label>
-        <input type="date" id="birthdate" name="birthdate" value="">
+        <input type="date" id="birthdate" name="birthdate" value="" required>
         <br>
         <label for="residence_prefecture">居住都道府県:</label>
         <input type="text" id="residence_prefecture" name="residence_prefecture" value="">
@@ -31,10 +31,10 @@
         <input type="text" id="blog_url" name="blog_url" value="">
         <br>
         <label for="icon_url">アイコン URL:</label>
-        <input type="text" id="icon_url" name="icon_url" value="">
+        <input type="file" id="icon_url" name="icon_url" value="">
         <br>
         <label for="profile_image_url">プロフィール画像 URL:</label>
-        <input type="text" id="profile_image_url" name="profile_image_url" value="">
+        <input type="file" id="profile_image_url" name="profile_image_url" value="">
         <br>
         <label for="self_introduction">自己紹介:</label>
         <textarea id="self_introduction" name="self_introduction" value=""></textarea>

@@ -61,17 +61,16 @@ class CommonControl extends Smarty {
      */
     public function verifyRegistrationProgress($userDetailModel){
         # user_idを条件にuser_detailsテーブルからデータ取得
-        $progressData = $userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
-        if ($progressData !== null){
-            if ($progressData['privacy_policy_agreed'] >= CommonControl::LATEST_PRIVACY_POLICY){
+        $_SESSION['user_data'] = $userDetailModel->getUserDetailFromUserId($_SESSION['user_id']);
+        if ($_SESSION['user_data'] !== null){
+            if ($_SESSION['user_data']['privacy_policy_agreed'] >= CommonControl::LATEST_PRIVACY_POLICY){
                 $_SESSION['privacyPolicy'] = true;
             }
-            if ($progressData['terms_of_service_agreed'] >= CommonControl::LATEST_TERMS_OF_SERVICE){
+            if ($_SESSION['user_data']['terms_of_service_agreed'] >= CommonControl::LATEST_TERMS_OF_SERVICE){
                 $_SESSION['termsOfService'] = true;
             }
-            if ($progressData['nick_name'] !== null){
+            if ($_SESSION['user_data']['nick_name'] !== null){
                 $_SESSION['completedToUserDetailRegistration'] = true;
-                $_SESSION['nick_name'] = $progressData['nick_name'];
             }
         }
     }
