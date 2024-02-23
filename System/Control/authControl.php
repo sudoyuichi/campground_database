@@ -104,6 +104,21 @@ class authControl extends Smarty {
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
+            case 'showChangePassword':
+                $templateDir .= 'showChangePassword.tpl';
+                break;
+            case 'changePassword':
+                $email = $_POST['email'];
+                $currentPassword = $_POST['current_password'];
+                $newPassword = $_POST['new_password'];
+                $confirmNewPassword = $_POST['confirm_new_password'];
+                if($this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword)){
+                    $errorMsg = 'パスワードの更新に成功しました!';
+                }else{
+                    $errorMsg = 'パスワードの更新に失敗しました。';
+                }
+                $templateDir .= 'showChangePassword.tpl';
+                break;
             case 'logout':
                 $this->logout();
                 $templateDir .= 'login.tpl';
@@ -147,6 +162,36 @@ class authControl extends Smarty {
         }catch (Exception $e){
             error_log('ログイン認証に失敗しました。: ' . $e->getMessage());
             return false;
+        }
+        return false;
+    }
+
+    /**
+     * 入力された値からパスワード更新を実行
+     *
+     * @param string $email 登録済みのメールアドレス
+     * @param string $currentPassword 現在のパスワード
+     * @param string $newPassword 新パスワード
+     * @param string $confirmNewPassword 確認用の新パスワード
+     * @return bool パスワード更新に成功した場合のみtrueを返す。
+     */
+    public function executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword){
+        // 新パスワードと確認用の新パスワードが正しいかチェック
+        $isBothNewPasswordCorrect = false;
+        if ($newPassword == $confirmNewPassword){
+            $isBothNewPasswordCorrect = true;
+        // 新パスワード同士が異なればFalseを返して処理終了。 単純な値の比較の為、先に実施。
+        }else{
+            return false;
+        }
+        $userModel = new userModel();
+        //現在のパスワードが正しいか確認
+        $isCurrentPasswordCorrect = $this->verifyPassword($email, $currentPassword, $userModel);
+        if ($isBothNewPasswordCorrect && $isCurrentPasswordCorrect){
+            // パスワード更新処理を実行
+            $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+            $userModel->modifyPassword($_SESSION['user_id'], $hash);
+            return true;
         }
         return false;
     }
