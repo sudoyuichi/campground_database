@@ -112,11 +112,8 @@ class authControl extends Smarty {
                 $currentPassword = $_POST['current_password'];
                 $newPassword = $_POST['new_password'];
                 $confirmNewPassword = $_POST['confirm_new_password'];
-                if($this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword)){
-                    $errorMsg = 'パスワードの更新に成功しました!';
-                }else{
-                    $errorMsg = 'パスワードの更新に失敗しました。';
-                }
+                // パスワード更新を実行し、成否をメッセージ入れた元の画面に戻る。
+                $errorMsg = $this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword);
                 $templateDir .= 'showChangePassword.tpl';
                 break;
             case 'logout':
@@ -173,16 +170,17 @@ class authControl extends Smarty {
      * @param string $currentPassword 現在のパスワード
      * @param string $newPassword 新パスワード
      * @param string $confirmNewPassword 確認用の新パスワード
-     * @return bool パスワード更新に成功した場合のみtrueを返す。
+     * @return string $msg 更新の成否をメッセージで返却
      */
     public function executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword){
+        $msg = 'パスワードの更新に失敗しました。';
         // 新パスワードと確認用の新パスワードが正しいかチェック
         $isBothNewPasswordCorrect = false;
         if ($newPassword == $confirmNewPassword){
             $isBothNewPasswordCorrect = true;
         // 新パスワード同士が異なればFalseを返して処理終了。 単純な値の比較の為、先に実施。
         }else{
-            return false;
+            return $msg;
         }
         $userModel = new userModel();
         //現在のパスワードが正しいか確認
@@ -191,9 +189,10 @@ class authControl extends Smarty {
             // パスワード更新処理を実行
             $hash = password_hash($newPassword, PASSWORD_BCRYPT);
             $userModel->modifyPassword($_SESSION['user_id'], $hash);
-            return true;
+            $msg = 'パスワードの更新に成功しました！';
+            return $msg;
         }
-        return false;
+        return $msg;
     }
 
     /**
