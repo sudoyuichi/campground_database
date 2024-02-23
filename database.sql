@@ -17,7 +17,7 @@ CREATE TABLE users (
     password_reset_expiration DATETIME,
     registration_status INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME
     );
 
