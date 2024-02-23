@@ -111,4 +111,24 @@ class userModel {
             $this->connection->rollBack();
         }
     }
+
+    /**
+     * パスワードの更新を行う
+     *
+     * @param int $id usersテーブルのid
+     * @param int $hash ハッシュ化されたパスワード
+     */
+    public function modifyPassword($id, $hash){
+        try{
+            $query = $this->connection->prepare(
+                'UPDATE users SET password = :password WHERE id = :id');
+            $query->bindParam(':password', $hash);
+            $query->bindParam(':id', $id);
+            $query->execute();
+        } catch (PDOException $e) {
+            $errorMessage = 'パスワードの更新に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
+            $this->connection->rollBack();
+        }
+    }
 }
