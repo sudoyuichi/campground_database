@@ -104,6 +104,18 @@ class authControl extends Smarty {
                 $errorMsg = '本登録出来ませんでした。管理者へお問い合わせをお願い致します。';
                 $templateDir .= 'showRegistrationResult.tpl';
                 break;
+            case 'showChangePassword':
+                $templateDir .= 'showChangePassword.tpl';
+                break;
+            case 'changePassword':
+                $email = $_POST['email'];
+                $currentPassword = $_POST['current_password'];
+                $newPassword = $_POST['new_password'];
+                $confirmNewPassword = $_POST['confirm_new_password'];
+                // パスワード更新を実行し、成否をメッセージ入れた元の画面に戻る。
+                $errorMsg = $this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword);
+                $templateDir .= 'showChangePassword.tpl';
+                break;
             case 'logout':
                 $this->logout();
                 $templateDir .= 'login.tpl';
@@ -149,6 +161,38 @@ class authControl extends Smarty {
             return false;
         }
         return false;
+    }
+
+    /**
+     * 入力された値からパスワード更新を実行
+     *
+     * @param string $email 登録済みのメールアドレス
+     * @param string $currentPassword 現在のパスワード
+     * @param string $newPassword 新パスワード
+     * @param string $confirmNewPassword 確認用の新パスワード
+     * @return string $msg 更新の成否をメッセージで返却
+     */
+    public function executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword){
+        $msg = 'パスワードの更新に失敗しました。';
+        // 新パスワードと確認用の新パスワードが正しいかチェック
+        $isBothNewPasswordCorrect = false;
+        if ($newPassword == $confirmNewPassword){
+            $isBothNewPasswordCorrect = true;
+        // 新パスワード同士が異なればFalseを返して処理終了。 単純な値の比較の為、先に実施。
+        }else{
+            return $msg;
+        }
+        $userModel = new userModel();
+        //現在のパスワードが正しいか確認
+        $isCurrentPasswordCorrect = $this->verifyPassword($email, $currentPassword, $userModel);
+        if ($isBothNewPasswordCorrect && $isCurrentPasswordCorrect){
+            // パスワード更新処理を実行
+            $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+            $userModel->modifyPassword($_SESSION['user_id'], $hash);
+            $msg = 'パスワードの更新に成功しました！';
+            return $msg;
+        }
+        return $msg;
     }
 
     /**

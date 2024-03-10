@@ -51,8 +51,9 @@
         </tr>
     </table>
     <br>    
-    <a href=main.php?>メインページはこちら</a>
-    <a href=userDetail.php?mode=showModifyUserDetail>詳細情報の修正はこちら</a>
+    <a href=main.php?>メインページはこちら</a><br>
+    <a href=userDetail.php?mode=showModifyUserDetail>詳細情報の修正はこちら</a><br>
+    <a href=auth.php?mode=showChangePassword>パスワード変更</a><br>
     <a href=auth.php?mode=logout>ログアウト</a>
 {/if}
 </body>
