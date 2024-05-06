@@ -27,6 +27,8 @@
         <input type="hidden" name="mode" value="entry">
         <button type="submit">ユーザ登録へ</button>
     </form>
+    <br>
+    <a href=auth.php?mode=showResetPassword>パスワードを忘れた方はこちら</a><br>
 
 </body>
 </html>
