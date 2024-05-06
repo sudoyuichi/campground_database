@@ -39,6 +39,8 @@ class authControl extends Smarty {
         $timeLimit = '0000-00-00 00:00:00';
         $uuid = null;
         $isUuidStillAlive = null;
+        $this->assign('result', false);
+        $this->assign('checkUrl', null);
         $userModel = new userModel();
         $userDetailModel = new userDetailModel();
         switch ($mode) {
@@ -54,8 +56,6 @@ class authControl extends Smarty {
                 # メールアドレスが登録済みか確認
                 if ($userModel->getUserByEmail($email)){
                     $errorMsg = '既に登録されたアドレスです';
-                    $this->assign('result', false);
-                    $this->assign('checkUrl', null);
                 }else{
                     $hash = password_hash($password, PASSWORD_BCRYPT);
                     //$uuid = パスワドリセットトークンを作成。↓の引数に追加。
@@ -115,6 +115,54 @@ class authControl extends Smarty {
                 // パスワード更新を実行し、成否をメッセージ入れた元の画面に戻る。
                 $errorMsg = $this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword);
                 $templateDir .= 'showChangePassword.tpl';
+                break;
+            case 'showResetPassword':
+                $templateDir .= 'showResetPassword.tpl';
+                break;
+            case 'resetPassword':
+                $email = $_POST['email'];
+                // アドレスでデータを取得
+                $user = $userModel->getUserByEmail($email);
+                // ユーザデータがない場合、処理終了
+                if(! $user){
+                    $errorMsg = 'そのユーザは存在しません。';
+                }else{
+                    // ある場合、リセットトークンと有効期限の発行
+                    // 発行したトークンでリンク生成し、result画面へ。
+                    $uuid = $this->common->generateUUID();
+                    $_SESSION['reset_uuid'] = $uuid;
+                    $timeLimit = date("Y-m-d H:i:s",strtotime("30 minute"));
+                    $userModel->updateResetToken($email, $uuid, $timeLimit);
+                        $errorMsg = 'パスワードリセットが完了しました。';
+                        $checkUrl = 'auth.php?mode=completeResetPassword&id='.$uuid;
+                        $this->assign('checkUrl', $checkUrl);
+                        $this->assign('result', true);
+                }
+                $templateDir .= 'showResetPasswordResult.tpl';
+                break;
+            case 'completeResetPassword':
+                $templateDir .= 'completeResetPassword.tpl';
+                break;
+            case 're-register':
+                $uuid = $_SESSION['reset_uuid'];
+                $newPassword = $_POST['new_password'];
+                $confirmNewPassword = $_POST['confirm_new_password'];
+                $errorMsg = 'パスワードの再設定に失敗しました';
+                # uuidからユーザデータを取得
+                $userData = $userModel->getUserDataByUuid($uuid);
+                # 取得したユーザデータのuuidの登録期限が期限内かチェック
+                $isUuidStillAlive = $this->checkUuidStillValid($userData);
+                if($isUuidStillAlive){
+                    // パスワード更新処理
+                    if($newPassword == $confirmNewPassword){
+                        $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+                        $conditions = array('password_reset_token' => $uuid);
+                    $userModel->modifyPassword($conditions, $hash);
+                    $errorMsg = 'パスワードの再設定に成功しました';    
+                    }
+                }
+                // パスワードの更新に成否に関わらずログイン画面へ
+                $templateDir .= 'login.tpl';
                 break;
             case 'logout':
                 $this->logout();
@@ -188,7 +236,8 @@ class authControl extends Smarty {
         if ($isBothNewPasswordCorrect && $isCurrentPasswordCorrect){
             // パスワード更新処理を実行
             $hash = password_hash($newPassword, PASSWORD_BCRYPT);
-            $userModel->modifyPassword($_SESSION['user_id'], $hash);
+            $conditions = array('id' => $_SESSION['user_id']);
+            $userModel->modifyPassword($conditions, $hash);
             $msg = 'パスワードの更新に成功しました！';
             return $msg;
         }
