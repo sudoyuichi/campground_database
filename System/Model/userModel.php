@@ -115,18 +115,51 @@ class userModel {
     /**
      * パスワードの更新を行う
      *
-     * @param int $id usersテーブルのid
+     * @param array $conditions usersテーブルの更新時でwhere句に使う条件
      * @param int $hash ハッシュ化されたパスワード
+     * 
+     * ex) $conditions = array('id' => 100, 'email' => 'example@example.com')
+     *     が有るとするとwhere id = 100 AND email = exampl@example.comとなる
      */
-    public function modifyPassword($id, $hash){
+    public function modifyPassword($conditions, $hash){
         try{
-            $query = $this->connection->prepare(
-                'UPDATE users SET password = :password WHERE id = :id');
+            $sql = 'UPDATE users SET password = :password WHERE ';
+            $conditionsSql = '';
+            // 条件をSQLクエリに追加
+            foreach ($conditions as $key => $value) {
+                $conditionsSql .= "$key = :$key AND ";
+            }
+            // 最後のANDを削除
+            $conditionsSql = rtrim($conditionsSql, 'AND ');
+            // SQLクエリを完成
+            $sql .= $conditionsSql;
+            $query = $this->connection->prepare($sql);
+            // ハッシュ化されたパスワードをバインド
             $query->bindParam(':password', $hash);
-            $query->bindParam(':id', $id);
+            // 条件をバインド
+            foreach ($conditions as $key => $value) {
+                $query->bindParam(":$key", $value);
+            }
             $query->execute();
         } catch (PDOException $e) {
             $errorMessage = 'パスワードの更新に失敗しました。: ' . $e->getMessage();
+            error_log($errorMessage);
+            $this->connection->rollBack();
+        }
+    }
+    
+
+    public function updateResetToken($email, $uuid, $timeLimit){
+        try{
+            $query = $this->connection->prepare(
+                'UPDATE users SET password_reset_token = :password_reset_token
+                ,password_reset_expiration = :password_reset_expiration WHERE email = :email');
+            $query->bindParam(':password_reset_token', $uuid);
+            $query->bindParam(':password_reset_expiration', $timeLimit);
+            $query->bindParam(':email', $email);
+            $query->execute();
+        } catch (PDOException $e) {
+            $errorMessage = 'パスワードリセットトークンの更新に失敗しました。: ' . $e->getMessage();
             error_log($errorMessage);
             $this->connection->rollBack();
         }
