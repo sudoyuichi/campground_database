@@ -34,6 +34,7 @@ class authControl extends Smarty {
      * @param string $mode モード（'index' または 'register'）
      */
     public function execute($mode) {
+        $_POST = $this->common->sanitizeArray($_POST);
         $templateDir = 'Auth/';
         $errorMsg = null;
         $timeLimit = '0000-00-00 00:00:00';

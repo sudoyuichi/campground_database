@@ -36,6 +36,7 @@ class userDetailControl extends Smarty {
      * @param string $mode モード
      */
     public function execute($mode) {
+        $_POST = $this->common->sanitizeArray($_POST);
         $templateDir = 'UserDetail/';
         switch ($mode) {
             case 'privacy_policy_agreed':
