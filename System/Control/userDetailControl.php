@@ -1,6 +1,7 @@
 <?php
 
 $rootPath = __DIR__ . '/..';
+global $postData;
 
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
@@ -36,6 +37,10 @@ class userDetailControl extends Smarty {
      * @param string $mode モード
      */
     public function execute($mode) {
+        if ($_POST){
+            global $postData;
+            $postData = $this->common->sanitizeArray($_POST);
+        }
         $templateDir = 'UserDetail/';
         switch ($mode) {
             case 'privacy_policy_agreed':
@@ -105,16 +110,17 @@ class userDetailControl extends Smarty {
 
     /**POSTされた情報からユーザ詳細を更新*/
     public function updateUserDetail() {
-        $birthdate = $_POST['birthdate'];
-        $residence_prefecture = $_POST['residence_prefecture'];
-        $nick_name = $_POST['nick_name'];
-        $twitter_url = $_POST['twitter_url'];
-        $instagram_url = $_POST['instagram_url'];
-        $youtube_channel_url = $_POST['youtube_channel_url'];
-        $blog_url = $_POST['blog_url'];
+        global $postData;
+        $birthdate = $postData['birthdate'];
+        $residence_prefecture = $postData['residence_prefecture'];
+        $nick_name = $postData['nick_name'];
+        $twitter_url = $postData['twitter_url'];
+        $instagram_url = $postData['instagram_url'];
+        $youtube_channel_url = $postData['youtube_channel_url'];
+        $blog_url = $postData['blog_url'];
         $icon_url = $this->uploadImage('icon_url', 'Icon/');
         $profile_image_url = $this->uploadImage('profile_image_url', 'Profil/');
-        $self_introduction = $_POST['self_introduction'];
+        $self_introduction = $postData['self_introduction'];
         $_SESSION['completedToUserDetailRegistration'] = $this->userDetailModel->updateUserDetail(
             $birthdate, $residence_prefecture, $nick_name, $twitter_url, $instagram_url, $youtube_channel_url, $blog_url,
             $icon_url, $profile_image_url, $self_introduction, $_SESSION['user_id']
