@@ -35,7 +35,6 @@ class mainControl extends Smarty {
      * @param string $mode モード（'index' または 'register'）
      */
     public function execute($mode) {
-        $_POST = $this->common->sanitizeArray($_POST);
         $templateDir = 'Main/';
         $errorMsg = null;
         $this->ensureSessionStarted();
