@@ -22,10 +22,10 @@
         <input type="password" name="current_password" id="current_password" required>
         <br>
         <label for="new_password">新しいパスワード:</label>
-        <input type="password" name="new_password" id="new_password" required>
+        <input type="password" name="new_password" id="new_password" maxlength="8" required>
         <br>
         <label for="confirm_new_password">新しいパスワード（確認用に再度）:</label>
-        <input type="password" name="confirm_new_password" id="confirm_new_password" required>
+        <input type="password" name="confirm_new_password" id="confirm_new_password" maxlength="8" required>
         <br>
         <button type="submit">パスワードを変更</button>
     </form>

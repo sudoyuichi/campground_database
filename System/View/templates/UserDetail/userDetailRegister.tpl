@@ -16,28 +16,28 @@
         <input type="date" id="birthdate" name="birthdate" value="" required>
         <br>
         <label for="residence_prefecture">居住都道府県:</label>
-        <input type="text" id="residence_prefecture" name="residence_prefecture" value="">
+        <input type="text" id="residence_prefecture" name="residence_prefecture" value="" maxlength="255">
         <br>
         <label for="twitter_url">Twitter URL:</label>
-        <input type="text" id="twitter_url" name="twitter_url" value="">
+        <input type="text" id="twitter_url" name="twitter_url" value="" maxlength="255">
         <br>
         <label for="instagram_url">Instagram URL:</label>
-        <input type="text" id="instagram_url" name="instagram_url" value="">
+        <input type="text" id="instagram_url" name="instagram_url" value="" maxlength="255">
         <br>
         <label for="youtube_channel_url">YouTubeチャンネル URL:</label>
-        <input type="text" id="youtube_channel_url" name="youtube_channel_url" value="">
+        <input type="text" id="youtube_channel_url" name="youtube_channel_url" value="" maxlength="255">
         <br>
         <label for="blog_url">ブログ URL:</label>
-        <input type="text" id="blog_url" name="blog_url" value="">
+        <input type="text" id="blog_url" name="blog_url" value="" maxlength="255">
         <br>
         <label for="icon_url">アイコン URL:</label>
-        <input type="file" id="icon_url" name="icon_url" value="">
+        <input type="file" id="icon_url" name="icon_url" value="" maxlength="255">
         <br>
         <label for="profile_image_url">プロフィール画像 URL:</label>
-        <input type="file" id="profile_image_url" name="profile_image_url" value="">
+        <input type="file" id="profile_image_url" name="profile_image_url" value="" maxlength="255">
         <br>
         <label for="self_introduction">自己紹介:</label>
-        <textarea id="self_introduction" name="self_introduction" value=""></textarea>
+        <textarea id="self_introduction" name="self_introduction" value=""　maxlength="1000"></textarea>
         <br>
         <input type="submit" value="登録">
     </form>

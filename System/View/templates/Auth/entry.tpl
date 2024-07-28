@@ -15,13 +15,13 @@
     <form action="auth.php" method="post">
         <input type="hidden" name="mode" value="register">
         <label for="name">Name:</label>
-        <input type="text" name="name" id="name" required>
+        <input type="text" name="name" id="name" maxlength="255" required>
         <br>
         <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required>
+        <input type="email" name="email" id="email" maxlength="255"　required>
         <br>
         <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required>
+        <input type="password" name="password" id="password" minlength="8"　maxlength="255"　required>
         <br>
         <button type="submit">Register</button>
     </form>
