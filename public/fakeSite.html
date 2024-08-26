@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>POSTリクエスト送信</title>
+</head>
+<body>
+    <form action="http://localhost:8888/campground_database/public/auth.php" method="post">
+        <input type="hidden" name="csrfToken" value="f7ffebb06768ea0a688c5102f3cb41cdadcc6e6ef00577d00d24a2166247c840">
+        <input type="hidden" name="mode" value="login">
+        <label for="email">Email:</label>
+        <input type="email" name="email" value="aaa@a">
+        <label for="password">Password:</label>
+        <input type="password" name="password" value="a">
+        <button type="submit">送信</button>
+    </form>
+
+    <h1>ユーザ詳細情報登録</h1>
+    <form action="http://localhost:8888/campground_database/public/userDetail.php" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="mode" value="userDetailRegister">
+        <label for="nick_name">ニックネーム<span style="color: red;">*</span>:</label>
+        <input type="text" id="nick_name" name="nick_name" required>
+        <br>
+        <label for="birthdate">生年月日:</label>
+        <input type="date" id="birthdate" name="birthdate" value="" required>
+        <br>
+        <label for="residence_prefecture">居住都道府県:</label>
+        <input type="text" id="residence_prefecture" name="residence_prefecture" value="">
+        <br>
+        <label for="twitter_url">Twitter URL:</label>
+        <input type="text" id="twitter_url" name="twitter_url" value="">
+        <br>
+        <label for="instagram_url">Instagram URL:</label>
+        <input type="text" id="instagram_url" name="instagram_url" value="">
+        <br>
+        <label for="youtube_channel_url">YouTubeチャンネル URL:</label>
+        <input type="text" id="youtube_channel_url" name="youtube_channel_url" value="">
+        <br>
+        <label for="blog_url">ブログ URL:</label>
+        <input type="text" id="blog_url" name="blog_url" value="">
+        <br>
+        <label for="icon_url">アイコン URL:</label>
+        <input type="file" id="icon_url" name="icon_url" value="">
+        <br>
+        <label for="profile_image_url">プロフィール画像 URL:</label>
+        <input type="file" id="profile_image_url" name="profile_image_url" value="">
+        <br>
+        <label for="self_introduction">自己紹介:</label>
+        <textarea id="self_introduction" name="self_introduction" value=""></textarea>
+        <br>
+        <input type="submit" value="登録">
+    </form>
+    
+
+</body>
+</html>
