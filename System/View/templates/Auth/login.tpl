@@ -13,6 +13,9 @@
 <h1>ユーザログインページ</h1>
     {$errorMsg}
     <form action="auth.php" method="post">
+        {if $csrfToken}
+        <input type="hidden" name="csrfToken" value="{$csrfToken}">
+        {/if}
         <input type="hidden" name="mode" value="login">
         <label for="email">Email:</label>
         <input type="email" name="email" id="email" required>
