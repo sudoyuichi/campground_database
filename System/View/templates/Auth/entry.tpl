@@ -13,6 +13,9 @@
 <h1>ユーザ登録ページ</h1>
 
     <form action="auth.php" method="post">
+        {if $csrfToken}
+        <input type="hidden" name="csrfToken" value="{$csrfToken}">
+        {/if}
         <input type="hidden" name="mode" value="register">
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" required>

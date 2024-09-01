@@ -48,7 +48,31 @@ class authControl extends Smarty {
         $this->assign('checkUrl', null);
         $userModel = new userModel();
         $userDetailModel = new userDetailModel();
-        switch ($mode) {
+
+        // CSRFトークンを生成してセッションに保存
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $csrfToken = $this->common->generateCsrfToken();
+        } else {
+            // リクエストデータにトークンがあればトークンを、なければnullを設定します。
+            $csrfToken = isset($_POST['csrfToken']) ? $_POST['csrfToken'] : '';
+        }
+        $this->assign('csrfToken', $csrfToken);
+        // CSRFトークンの検証
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // 検証結果が偽なら不正なアクセスの為ログインページへ遷移します。
+            if (!$this->common->verifyCsrfToken($csrfToken)) {
+                $errorMsg = '不正な操作が行われました。';
+                $templateDir .= 'login.tpl';
+                // 検証時にトークンを削除する為、再生成してログイン画面へ遷移します。
+                $newCsrfToken = $this->common->generateCsrfToken();
+                $this->assign('csrfToken', $newCsrfToken);
+                $this->assign('errorMsg', $errorMsg);
+                $this->display($templateDir);
+                exit();
+            }
+        }
+
+        switch ($mode) {   
             # ユーザ登録ページ呼び出し
             case 'entry':
                 $templateDir .= 'entry.tpl';

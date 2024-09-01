@@ -100,4 +100,29 @@ class CommonControl extends Smarty {
         }
         return $array;
     }
+ 
+    /**
+     * CSRFトークンを生成し、セッションに保存する関数
+     * トークンがすでに存在しない場合に新しいトークンを生成し、セッションに保存します。
+     * @return string 生成されたCSRFトークン
+     */
+    function generateCsrfToken() {
+        if (empty($_SESSION['csrfToken']) || !isset($_POST['csrfToken'])) {
+            $_SESSION['csrfToken'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrfToken'];
+    }
+
+    /**
+     * 指定されたトークンがセッションに保存されているトークンと一致するか確認します。
+     * @param string $token 検証するトークン
+     * @return bool トークンが一致する場合はtrue、それ以外はfalse
+     */
+    function verifyCsrfToken($token) {
+        if (isset($_SESSION['csrfToken']) && !is_null($token) && hash_equals($_SESSION['csrfToken'], $token)) {
+            unset($_SESSION['csrfToken']); // 一度使ったトークンは無効にする
+            return true;
+        }
+        return false;
+    }
 }
