@@ -1,6 +1,7 @@
 <?php
 
 $rootPath = __DIR__ . '/..';
+global $postData; 
 
 require_once $rootPath . '/define.php';
 require_once $rootPath . CONTROL_PATH . '/commonControl.php';  // commonControl.phpをインクルード
@@ -34,6 +35,10 @@ class authControl extends Smarty {
      * @param string $mode モード（'index' または 'register'）
      */
     public function execute($mode) {
+        if($_POST){
+            global $postData;
+            $postData = $this->common->sanitizeArray($_POST);
+        } 
         $templateDir = 'Auth/';
         $errorMsg = null;
         $timeLimit = '0000-00-00 00:00:00';
@@ -74,9 +79,9 @@ class authControl extends Smarty {
                 break;
             # ユーザ登録
             case 'register':
-                $name = $_POST['name'];
-                $email = $_POST['email'];
-                $password = $_POST['password'];
+                $name = $postData['name'];
+                $email = $postData['email'];
+                $password = $postData['password'];
                 # メールアドレスが登録済みか確認
                 if ($userModel->getUserByEmail($email)){
                     $errorMsg = '既に登録されたアドレスです';
@@ -98,8 +103,8 @@ class authControl extends Smarty {
                 break;
             # ログイン実行
             case 'login':
-                $email = $_POST['email'];
-                $password = $_POST['password'];
+                $email = $postData['email'];
+                $password = $postData['password'];
                 # パスワード認証
                 $isLogin = $this->verifyPassword($email, $password, $userModel);
                 if ($isLogin){
@@ -132,10 +137,10 @@ class authControl extends Smarty {
                 $templateDir .= 'showChangePassword.tpl';
                 break;
             case 'changePassword':
-                $email = $_POST['email'];
-                $currentPassword = $_POST['current_password'];
-                $newPassword = $_POST['new_password'];
-                $confirmNewPassword = $_POST['confirm_new_password'];
+                $email = $postData['email'];
+                $currentPassword = $postData['current_password'];
+                $newPassword = $postData['new_password'];
+                $confirmNewPassword = $postData['confirm_new_password'];
                 // パスワード更新を実行し、成否をメッセージ入れた元の画面に戻る。
                 $errorMsg = $this->executeChangePassword($email, $currentPassword, $newPassword, $confirmNewPassword);
                 $templateDir .= 'showChangePassword.tpl';
@@ -144,7 +149,7 @@ class authControl extends Smarty {
                 $templateDir .= 'showResetPassword.tpl';
                 break;
             case 'resetPassword':
-                $email = $_POST['email'];
+                $email = $postData['email'];
                 // アドレスでデータを取得
                 $user = $userModel->getUserByEmail($email);
                 // ユーザデータがない場合、処理終了
@@ -169,8 +174,8 @@ class authControl extends Smarty {
                 break;
             case 're-register':
                 $uuid = $_SESSION['reset_uuid'];
-                $newPassword = $_POST['new_password'];
-                $confirmNewPassword = $_POST['confirm_new_password'];
+                $newPassword = $postData['new_password'];
+                $confirmNewPassword = $postData['confirm_new_password'];
                 $errorMsg = 'パスワードの再設定に失敗しました';
                 # uuidからユーザデータを取得
                 $userData = $userModel->getUserDataByUuid($uuid);

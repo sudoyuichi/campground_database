@@ -76,6 +76,32 @@ class CommonControl extends Smarty {
     }
 
     /**
+     * 入力された文字のエスケープ処理を行います。
+     * 
+     * @param string $input 入力されたデータ
+     */
+    public function sanitizeInput($input) {
+        return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
+     * 入力された配列データののエスケープ処理を行います。
+     * 
+     * @param array $array 配列データ
+     */
+    public function sanitizeArray($array) {
+        foreach ($array as $key => $value) {
+            # 多次元配列の場合は再度このメソッドを呼び出しエスケープ処理します。
+            if (is_array($value)) {
+                $array[$key] = $this->sanitizeArray($value);
+            } else {
+                $array[$key] = $this->sanitizeInput($value);
+            }
+        }
+        return $array;
+    }
+ 
+    /**
      * CSRFトークンを生成し、セッションに保存する関数
      * トークンがすでに存在しない場合に新しいトークンを生成し、セッションに保存します。
      * @return string 生成されたCSRFトークン
